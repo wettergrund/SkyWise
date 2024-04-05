@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using API.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WeatherController : Controller
+    public class WeatherController(IWeatherDataHandler weatherDataHandler) : Controller
     {
+       
  
         [HttpGet]
         public async Task<IActionResult> GetCurrentWeather(string ICAO) {
@@ -16,11 +18,13 @@ namespace API.Controllers
              * Update cache
              * Return weather data
              */
+            var result = await weatherDataHandler.GetWeatherByICAO(ICAO);
 
 
 
 
-            return Ok(ICAO);
+
+            return Ok(result);
         }
     }
 }
