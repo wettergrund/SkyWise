@@ -1,52 +1,33 @@
 using API.Data;
+using API.Models;
 using API.Models.DB;
+using API.Repositories;
 
 namespace API.Services
 {
   public interface IWeatherDataHandler
   {
 
-    public Task<string> GetWeatherByICAO(string ICAO);
+    public Task<AirportWeather> GetWeatherByICAO(string ICAO);
+
       
   }   
 
   class WeatherDataHandler : IWeatherDataHandler
   {
-        private SWContext _context;
-        public WeatherDataHandler(SWContext context)
+        private readonly IWeatherRepo _repo;
+        public WeatherDataHandler(IWeatherRepo repo)
         {
-            _context = context;
+            _repo = repo;
             
         }
-        public async Task<string> GetWeatherByICAO(string ICAO){
+        public async Task<AirportWeather> GetWeatherByICAO(string ICAO){
 
-            //Only for test
-            var metar = new METAR()
-            {
-                ICAO = "ESOW",
-                RawMetar = "ESOW 050820Z 06007KT 040V100 4500 -SN BKN006 01/M00 Q1005=",
-                Temp = 1,
-                DewPoint = 0,
-                WindDirectionDeg = 60,
-                WindSpeedKt = 7,
-                VisibilityM = 4500,
-                QNH = 1005,
-                VerticalVisibilityFt = 0,
-                WxString = "-SN",
-                Auto = false,
-                CloudLayers =
-                {
-                    new(){Cover = "BKN", CloudBase = 600, CloudType = ""}
-                },
-                Rules = "IFR"
-                
+            var result = await _repo.GetAirportWeatherAsync(ICAO);
 
-            };
+            
 
-            _context.METAR.Add(metar);
-            _context.SaveChanges();
-
-      return metar.RawMetar;
+            return result;
 
     }    
   }
