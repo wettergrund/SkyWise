@@ -23,10 +23,22 @@ namespace API.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TAF>()
-                .OwnsMany(taf => taf.Forcasts, builder => { builder.ToJson(); });
+                .OwnsMany(taf => taf.Forcasts, builder => { 
+                    builder.ToJson();
+                    builder.Property(f => f.CloudLayers)
+                        .HasConversion(
+                   v => JsonConvert.SerializeObject(v),
+                   v => JsonConvert.DeserializeObject<List<TAFCloud>>(v));
+
+                });
+
+     
 
             modelBuilder.Entity<METAR>()
                 .OwnsMany(metar => metar.CloudLayers, builder => { builder.ToJson(); });
+
+            modelBuilder.Entity<Airport>().HasIndex(col => col.ICAO).IsUnique();
+
         }
 
 

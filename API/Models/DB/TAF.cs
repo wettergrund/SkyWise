@@ -7,6 +7,7 @@ namespace API.Models.DB
     {
         [Key]
         public int Id { get; set; }
+
         public string ICAO { get; set; }
         public DateTime IssueTime { get; set; }
         public DateTime ValidFrom { get; set; }
@@ -15,6 +16,7 @@ namespace API.Models.DB
 
         public List<Forcast> Forcasts { get; set; } = new();
 
+        public virtual Airport Airport { get; set; }
 
 
     }

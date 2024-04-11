@@ -9,7 +9,8 @@ namespace API.Repositories
 
         public async Task<TAF> GetTafAsync(string icao)
         {
-            return _db.TAF.Where(m => m.ICAO == icao).First();
+            var result = _db.TAF.Where(m => m.ICAO == icao).FirstOrDefault();
+            return result; 
 
         }
     }

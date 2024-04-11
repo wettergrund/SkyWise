@@ -20,13 +20,17 @@ namespace API.Models.DB
         public string WxString { get; set; }
         public bool Auto { get; set; }
 
-        public List<METARCloud> CloudLayers { get; set; } = new();
+        public List<METARCloud> CloudLayers { get; set; }
         public string Rules { get; set; }
 
-   }
+
+        public virtual Airport Airport { get; set; }
 
 
-   public class METARCloud
+    }
+
+
+    public class METARCloud
    {
     public string Cover { get; set; } 
     public int CloudBase { get; set; }

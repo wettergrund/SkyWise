@@ -26,5 +26,14 @@ namespace API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("/manual/addtaf")]
+
+        public async Task<IActionResult> AddTaf() {
+
+            var result = await weatherDataHandler.AddTaf();
+
+            return Ok(result);
+        }
     }
 }

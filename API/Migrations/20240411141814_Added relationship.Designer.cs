@@ -4,6 +4,7 @@ using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 
@@ -12,9 +13,11 @@ using NetTopologySuite.Geometries;
 namespace API.Migrations
 {
     [DbContext(typeof(SWContext))]
-    partial class SWContextModelSnapshot : ModelSnapshot
+    [Migration("20240411141814_Added relationship")]
+    partial class Addedrelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,16 +36,13 @@ namespace API.Migrations
 
                     b.Property<string>("ICAO")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Point>("Location")
                         .IsRequired()
                         .HasColumnType("geography");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ICAO")
-                        .IsUnique();
 
                     b.ToTable("Airport");
                 });

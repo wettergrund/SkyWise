@@ -8,7 +8,7 @@ namespace API.Repositories
         public MetarRepo(SWContext context) : base(context) {}
         public async Task<METAR> GetMetarAsync(string icao)
         {
-            return _db.METAR.Where(m => m.ICAO == icao).First();
+            return _db.METAR.Where(m => m.ICAO == icao).FirstOrDefault();
         }
     }
 }

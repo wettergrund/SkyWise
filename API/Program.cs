@@ -9,6 +9,8 @@ using Microsoft.Owin.Security.OpenIdConnect;
 using Microsoft.EntityFrameworkCore;
 using API.Data;
 using API.Services;
+using API.Repositories;
+using API.Models.DB;
 
 namespace API
 {
@@ -42,7 +44,17 @@ namespace API
                ServiceLifetime.Scoped
             );
 
+
             builder.Services.AddScoped<IWeatherDataHandler, WeatherDataHandler>();
+            builder.Services.AddScoped<IWeatherRepo, WeatherRepo>();
+            builder.Services.AddScoped<IMetarRepo, MetarRepo>();
+            builder.Services.AddScoped<ITafRepo, TafRepo>();
+            builder.Services.AddScoped<IRepoBase<Airport>, RepoBase<Airport>>();
+
+
+
+
+
 
 
             var app = builder.Build();
