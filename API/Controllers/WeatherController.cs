@@ -35,5 +35,14 @@ namespace API.Controllers
 
             return Ok(result);
         }
+        
+        [HttpGet("/manual/test")]
+
+        public async Task<IActionResult> Lab() {
+
+            await weatherDataHandler.FetchMetar();
+
+            return Ok();
+        }
     }
 }

@@ -168,7 +168,7 @@ namespace API.Services
                             WindSpeedKt = Convert.ToInt32(csvColumns[8]),
                             WindGustKt = csvColumns[9].IsNullOrEmpty() ? 0 : Convert.ToInt32(csvColumns[9]),
                             VisibilityM = 1337, //TODO
-                            QNH = Convert.ToInt32(csvColumns[11]), //TODO - Could be empty, 12 has hpa sometimes
+                            QNH = 1337, //TODO - Could be empty, 12 has hpa sometimes, double?
                             VerticalVisibilityFt = 0, // Todo: Remove for METAR?
                             WxString = csvColumns[21],
                             CloudLayers = new(),
@@ -178,10 +178,13 @@ namespace API.Services
                         //Handle cloudLayers
                         for (int i = 22; i <= 26; i += 2)
                         {
+                            int cloudBase;
+                            bool success = int.TryParse(csvColumns[i + 1], out cloudBase);
+                            
                             var newCloudLayer = new CloudModel()
                             {
                                 Cover = csvColumns[i],
-                                CloudBase = Int32.Parse(csvColumns[i + 1]),
+                                CloudBase = success ? cloudBase : 0,
                                 CloudType = ""
                             };
                             newMetar.CloudLayers.Add(newCloudLayer);
