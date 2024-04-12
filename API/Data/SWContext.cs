@@ -1,4 +1,5 @@
-﻿using API.Models.DB;
+﻿using API.Models;
+using API.Models.DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -28,7 +29,7 @@ namespace API.Data
                     builder.Property(f => f.CloudLayers)
                         .HasConversion(
                    v => JsonConvert.SerializeObject(v),
-                   v => JsonConvert.DeserializeObject<List<TAFCloud>>(v));
+                   v => JsonConvert.DeserializeObject<List<CloudModel>>(v));
 
                 });
 

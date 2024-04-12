@@ -20,7 +20,7 @@ namespace API.Models.DB
         public string WxString { get; set; }
         public bool Auto { get; set; }
 
-        public List<METARCloud> CloudLayers { get; set; }
+        public List<CloudModel> CloudLayers { get; set; }
         public string Rules { get; set; }
 
 

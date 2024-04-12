@@ -58,6 +58,7 @@ namespace API.Services
             var newTaf = new TAF()
             {
                 ICAO = ap.ICAO,
+                RawTAF = "TAF ESOW 120530Z 1206/1215 23006KT CAVOK PROB40 1214/1215 BKN012",
                 IssueTime = DateTime.Now,
                 ValidFrom = DateTime.Now,
                 ValidTo = DateTime.Now.AddHours(12),
@@ -77,7 +78,6 @@ namespace API.Services
                     WindSpeedKt = 10,
                     WindGustKt = 15,
                     VisibilityM = 9999,
-                    QNH = 1013,
                     VerticalVisibilityFt = 1000,
                     WxString = "-SN",
                     CloudLayers = new()
@@ -85,7 +85,7 @@ namespace API.Services
                 }
             };
 
-            var newCloudlayer = new TAFCloud()
+            var newCloudlayer = new CloudModel()
             {
                 CloudBase = 1500,
                 CloudType = "",
