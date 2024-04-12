@@ -1,7 +1,9 @@
+using System.IO.Compression;
 using API.Data;
 using API.Models;
 using API.Models.DB;
 using API.Repositories;
+using Microsoft.IdentityModel.Tokens;
 
 namespace API.Services
 {
@@ -117,6 +119,79 @@ namespace API.Services
 
             return result;
 
-    }    
+    }
+
+    public async Task FetchMetar()
+    {
+        /*
+         * 1. Get CSV
+         * 2. Turn each line into an object of METAR
+         * 3. Add each object to DB
+         */
+
+        string sourceFile = "https://aviationweather.gov/data/cache/metars.cache.csv.gz";
+        
+        using(HttpClient client = new HttpClient())
+            await using(Stream stream = await client.GetStreamAsync(sourceFile))
+                await using (GZipStream zip = new GZipStream(stream, CompressionMode.Decompress))
+                using (StreamReader reader = new StreamReader(zip))
+                {
+                    int startLine = 6;
+
+                    for (int i = 0; i < startLine; i++)
+                    {
+                        if (!reader.EndOfStream)
+                        {
+                            await reader.ReadLineAsync();
+                        }
+                    }
+
+                    while (!reader.EndOfStream)
+                    {
+                        string? csvLine = await reader.ReadLineAsync();
+
+                        string[] csvColumns = csvLine.Split(',');
+
+                        
+                        // map csvColumns to a METAR object.
+                        var newMetar = new METAR()
+                        {
+                            RawMetar = csvColumns[0],
+                            ICAO = csvColumns[1],
+                            ValidFrom = DateTime.Parse(csvColumns[2]),
+                            Temp = Convert.ToInt32(csvColumns[5]),
+                            DewPoint = Convert.ToInt32(csvColumns[6]),
+                            /* TODO:
+                             * Plocka sikt manuellt från RawMetar (eg. 9999)
+                             */
+                            WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]), //TODO: Could be "VRB"
+                            WindSpeedKt = Convert.ToInt32(csvColumns[8]),
+                            WindGustKt = csvColumns[9].IsNullOrEmpty() ? 0 : Convert.ToInt32(csvColumns[9]),
+                            VisibilityM = 1337, //TODO
+                            QNH = Convert.ToInt32(csvColumns[11]), //TODO - Could be empty, 12 has hpa sometimes
+                            VerticalVisibilityFt = 0, // Todo: Remove for METAR?
+                            WxString = csvColumns[21],
+                            CloudLayers = new(),
+                            Rules = csvColumns[30]
+                            
+                        };
+                        //Handle cloudLayers
+                        for (int i = 22; i <= 26; i += 2)
+                        {
+                            var newCloudLayer = new CloudModel()
+                            {
+                                Cover = csvColumns[i],
+                                CloudBase = Int32.Parse(csvColumns[i + 1]),
+                                CloudType = ""
+                            };
+                            newMetar.CloudLayers.Add(newCloudLayer);
+                        }
+                        
+                        // TODO: Add to DB
+                    }
+                }
+    }
+    public async Task FetchTaf(){}
+
   }
 }

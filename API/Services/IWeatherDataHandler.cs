@@ -10,6 +10,12 @@ namespace API.Services
 
         public Task<bool> AddTaf();
 
-      
+
+        public Task FetchMetar();
+        public Task FetchTaf();
+
+        
+
+
   }   
 }
