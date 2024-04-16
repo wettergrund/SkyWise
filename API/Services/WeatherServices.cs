@@ -12,10 +12,10 @@ namespace API.Services
   {
         private readonly IWeatherRepo _repo;
         private readonly ITafRepo _tafRepo;
-        private readonly IRepoBase<Airport> _apRepo;
+        private readonly IAirportRepo _apRepo;
         private readonly IMetarRepo _metarRepo;
 
-        public WeatherDataHandler(IWeatherRepo repo, ITafRepo tafRepo, IRepoBase<Airport> apRepo, IMetarRepo metarRepo)
+        public WeatherDataHandler(IWeatherRepo repo, ITafRepo tafRepo, IAirportRepo apRepo, IMetarRepo metarRepo)
         {
             _repo = repo;
             _tafRepo = tafRepo;
@@ -121,7 +121,7 @@ namespace API.Services
 
     }
 
-    public async Task FetchMetar()
+    public async Task<bool> FetchMetar()
     {
         /*
          * 1. Get CSV
@@ -137,6 +137,7 @@ namespace API.Services
                 using (StreamReader reader = new StreamReader(zip))
                 {
                     int startLine = 6;
+                    int limit = 2;
 
                     for (int i = 0; i < startLine; i++)
                     {
@@ -146,35 +147,68 @@ namespace API.Services
                         }
                     }
 
-                    while (!reader.EndOfStream)
+                    int count = 0;
+
+                    while (!reader.EndOfStream && count <= limit)
                     {
+                        count++;
+                        
                         string? csvLine = await reader.ReadLineAsync();
 
                         string[] csvColumns = csvLine.Split(',');
 
+                        var getAirport = await _apRepo.GetAirportByICAOAsync(csvColumns[1]);
+
+                        if (getAirport is null)
+                        {
+                            //TODO: Add aiport
+                            getAirport = await _apRepo.GetAirportByICAOAsync("ESOW");
+                        }
+                        
                         
                         // map csvColumns to a METAR object.
-                        var newMetar = new METAR()
-                        {
-                            RawMetar = csvColumns[0],
-                            ICAO = csvColumns[1],
-                            ValidFrom = DateTime.Parse(csvColumns[2]),
-                            Temp = Convert.ToInt32(csvColumns[5]),
-                            DewPoint = Convert.ToInt32(csvColumns[6]),
-                            /* TODO:
-                             * Plocka sikt manuellt från RawMetar (eg. 9999)
-                             */
-                            WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]), //TODO: Could be "VRB"
-                            WindSpeedKt = Convert.ToInt32(csvColumns[8]),
-                            WindGustKt = csvColumns[9].IsNullOrEmpty() ? 0 : Convert.ToInt32(csvColumns[9]),
-                            VisibilityM = 1337, //TODO
-                            QNH = 1337, //TODO - Could be empty, 12 has hpa sometimes, double?
-                            VerticalVisibilityFt = 0, // Todo: Remove for METAR?
-                            WxString = csvColumns[21],
-                            CloudLayers = new(),
-                            Rules = csvColumns[30]
-                            
-                        };
+                        // var newMetar = new METAR()
+                        // {
+                        //     RawMetar = csvColumns[0],
+                        //     ICAO = csvColumns[1],
+                        //     ValidFrom = DateTime.Parse(csvColumns[2]),
+                        //     Temp = Convert.ToInt32(csvColumns[5]),
+                        //     DewPoint = Convert.ToInt32(csvColumns[6]),
+                        //     /* TODO:
+                        //      * Plocka sikt manuellt från RawMetar (eg. 9999)
+                        //      */
+                        //     WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]), //TODO: Could be "VRB"
+                        //     WindSpeedKt = Convert.ToInt32(csvColumns[8]),
+                        //     WindGustKt = csvColumns[9].IsNullOrEmpty() ? 0 : Convert.ToInt32(csvColumns[9]),
+                        //     VisibilityM = 1337, //TODO
+                        //     QNH = 0, //Convert.ToDouble(csvColumns[11]), //TODO - Could be empty, 12 has hpa sometimes, double?
+                        //     VerticalVisibilityFt = Convert.ToInt32(csvColumns[41]), // Todo: Remove for METAR?
+                        //     WxString = csvColumns[21],
+                        //     CloudLayers = new(),
+                        //     Rules = csvColumns[30],
+                        //     Airport = getAirport
+                        //     
+                        //     
+                        // };
+
+                        var newMetar = new METAR();
+                        newMetar.RawMetar = csvColumns[0] ?? "";
+                        newMetar.ICAO = csvColumns[1] ?? "";
+                        newMetar.ValidFrom = DateTime.TryParse(csvColumns[2], out DateTime validFrom) ? validFrom : DateTime.MinValue;
+                        newMetar.Temp = string.IsNullOrEmpty(csvColumns[5]) ? 0 : Convert.ToInt32(csvColumns[5]);
+                        newMetar.DewPoint = string.IsNullOrEmpty(csvColumns[6]) ? 0 : Convert.ToInt32(csvColumns[6]);
+                        newMetar.WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]);
+                        newMetar.WindSpeedKt = Convert.ToInt32(csvColumns[8]);
+                        newMetar.WindGustKt = string.IsNullOrEmpty(csvColumns[9]) ? 0 : Convert.ToInt32(csvColumns[9]);
+                        newMetar.VisibilityM = 1337; // Default value changed to 1337
+                        newMetar.QNH = string.IsNullOrEmpty(csvColumns[11]) ? 0.0 : Convert.ToDouble(csvColumns[11]); // Default value changed to 0.0
+                        newMetar.VerticalVisibilityFt = 0; // Todo: Remove for METAR?
+                        newMetar.WxString = csvColumns[21];
+                        newMetar.CloudLayers = new();
+                        newMetar.Rules = csvColumns[30];
+                        newMetar.Airport = getAirport;
+
+                      
                         //Handle cloudLayers
                         for (int i = 22; i <= 26; i += 2)
                         {
@@ -190,11 +224,26 @@ namespace API.Services
                             newMetar.CloudLayers.Add(newCloudLayer);
                         }
                         
+                        
+                        
                         // TODO: Add to DB
+                        _metarRepo.Add(newMetar);
+                        
                     }
+                        _metarRepo.SaveChanges();
+
+                    
                 }
+
+        return true;
     }
-    public async Task FetchTaf(){}
+
+    public async Task<bool> FetchTaf()
+    {
+        throw new NotImplementedException();
+    }
+    
+   
 
   }
 }

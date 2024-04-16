@@ -49,7 +49,8 @@ namespace API
             builder.Services.AddScoped<IWeatherRepo, WeatherRepo>();
             builder.Services.AddScoped<IMetarRepo, MetarRepo>();
             builder.Services.AddScoped<ITafRepo, TafRepo>();
-            builder.Services.AddScoped<IRepoBase<Airport>, RepoBase<Airport>>();
+
+            builder.Services.AddScoped<IAirportRepo, AirportRepo>();
 
 
 
