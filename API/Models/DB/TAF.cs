@@ -18,13 +18,13 @@ namespace API.Models.DB
         public virtual Airport Airport { get; set; }
 
     }
-    
+
     public class Forcast
     {
         public DateTime ForcastFromTime { get; set; }
         public DateTime ForcastToTime { get; set; }
-        public string? ChangeIndicator { get; set;}
-        public DateTime? BecomingTime { get; set;}
+        public string? ChangeIndicator { get; set; }
+        public DateTime? BecomingTime { get; set; }
         public Probability Probability { get; set; } = Probability.Empty;
         public int WindDirectionDeg { get; set; }
         public int WindSpeedKt { get; set; }

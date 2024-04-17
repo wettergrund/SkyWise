@@ -7,10 +7,11 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class WeatherController(IWeatherDataHandler weatherDataHandler) : Controller
     {
-       
- 
+
+
         [HttpGet]
-        public async Task<IActionResult> GetCurrentWeather(string ICAO) {
+        public async Task<IActionResult> GetCurrentWeather(string ICAO)
+        {
 
             /*TODO:
              * Ceck cache
@@ -20,7 +21,7 @@ namespace API.Controllers
              */
             var result = await weatherDataHandler.GetWeatherByICAO(ICAO);
 
-            
+
 
 
 
@@ -29,16 +30,18 @@ namespace API.Controllers
 
         [HttpGet("/manual/addtaf")]
 
-        public async Task<IActionResult> AddTaf() {
+        public async Task<IActionResult> AddTaf()
+        {
 
             var result = await weatherDataHandler.AddTaf();
 
             return Ok(result);
         }
-        
+
         [HttpGet("/manual/test")]
 
-        public async Task<IActionResult> Lab() {
+        public async Task<IActionResult> Lab()
+        {
 
             await weatherDataHandler.FetchMetar();
 

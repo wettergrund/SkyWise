@@ -1,6 +1,4 @@
-﻿using API.Data;
-using API.Models;
-using API.Models.DB;
+﻿using API.Models;
 
 namespace API.Repositories
 {
@@ -21,7 +19,7 @@ namespace API.Repositories
             var metar = await _metarRepo.GetMetarAsync(icao);
             var taf = await _tafRepo.GetTafAsync(icao);
 
-            return new AirportWeather { Metar = metar, Taf = taf};
+            return new AirportWeather { Metar = metar, Taf = taf };
 
         }
     }

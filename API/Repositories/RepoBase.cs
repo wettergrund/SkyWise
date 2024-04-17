@@ -1,13 +1,13 @@
 ﻿
 using API.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Repositories
 {
     public class RepoBase<T> : IRepoBase<T> where T : class
     {
         protected SWContext _db;
-        public RepoBase(SWContext context) {
+        public RepoBase(SWContext context)
+        {
             _db = context;
         }
         public async Task Add(T entity)
@@ -29,7 +29,7 @@ namespace API.Repositories
         {
             return await _db.Set<T>().FindAsync(id);
         }
-    
+
 
         public async Task SaveChanges()
         {

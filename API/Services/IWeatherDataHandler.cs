@@ -1,10 +1,9 @@
 ﻿using API.Models;
-using API.Models.DB;
 
 namespace API.Services
 {
     public interface IWeatherDataHandler
-  {
+    {
 
         public Task<AirportWeather> GetWeatherByICAO(string ICAO);
 
@@ -14,8 +13,8 @@ namespace API.Services
         public Task<bool> FetchMetar();
         public Task<bool> FetchTaf();
 
-        
 
 
-  }   
+
+    }
 }

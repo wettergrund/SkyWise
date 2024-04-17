@@ -1,5 +1,4 @@
 ﻿using API.Models;
-using API.Models.DB;
 
 namespace API.Repositories
 {

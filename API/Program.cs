@@ -1,16 +1,7 @@
-using Owin;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.Owin;
-using Microsoft.Owin.Host.SystemWeb;
-using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OpenIdConnect;
-using Microsoft.EntityFrameworkCore;
 using API.Data;
-using API.Services;
 using API.Repositories;
-using API.Models.DB;
+using API.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace API
 {
@@ -77,7 +68,7 @@ namespace API
             app.Run();
         }
 
-     
+
 
 
     }

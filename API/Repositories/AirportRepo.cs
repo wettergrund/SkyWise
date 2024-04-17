@@ -9,7 +9,7 @@ public class AirportRepo : RepoBase<Airport>, IAirportRepo
     {
     }
 
-    public async Task<Airport> GetAirportByICAOAsync(string icao )
+    public async Task<Airport> GetAirportByICAOAsync(string icao)
     {
         var response = _db.Airport.Where(ap => ap.ICAO == icao).FirstOrDefault();
         return response;

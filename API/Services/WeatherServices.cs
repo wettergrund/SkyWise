@@ -1,15 +1,15 @@
-using System.IO.Compression;
-using API.Data;
 using API.Models;
 using API.Models.DB;
 using API.Repositories;
-using Microsoft.IdentityModel.Tokens;
+using NetTopologySuite.Geometries;
+using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace API.Services
 {
 
     class WeatherDataHandler : IWeatherDataHandler
-  {
+    {
         private readonly IWeatherRepo _repo;
         private readonly ITafRepo _tafRepo;
         private readonly IAirportRepo _apRepo;
@@ -27,7 +27,8 @@ namespace API.Services
         {
             var ap = _apRepo.GetAll().Where(airport => airport.ICAO == "ESOW").FirstOrDefault();
 
-            if (ap == null) {
+            if (ap == null)
+            {
                 return false;
             }
 
@@ -111,139 +112,182 @@ namespace API.Services
 
         }
 
-        public async Task<AirportWeather> GetWeatherByICAO(string ICAO){
+        public async Task<AirportWeather> GetWeatherByICAO(string ICAO)
+        {
 
             var result = await _repo.GetAirportWeatherAsync(ICAO);
 
-            
+
 
             return result;
 
-    }
+        }
 
-    public async Task<bool> FetchMetar()
-    {
-        /*
-         * 1. Get CSV
-         * 2. Turn each line into an object of METAR
-         * 3. Add each object to DB
-         */
+        public async Task<bool> FetchMetar()
+        {
+            /*
+             * 1. Get CSV
+             * 2. Turn each line into an object of METAR
+             * 3. Add each object to DB
+             */
 
-        string sourceFile = "https://aviationweather.gov/data/cache/metars.cache.csv.gz";
-        
-        using(HttpClient client = new HttpClient())
-            await using(Stream stream = await client.GetStreamAsync(sourceFile))
-                await using (GZipStream zip = new GZipStream(stream, CompressionMode.Decompress))
-                using (StreamReader reader = new StreamReader(zip))
+            string sourceFile = "https://aviationweather.gov/data/cache/metars.cache.csv.gz";
+
+            //var aiports = _apRepo.GetAll();
+
+            using (HttpClient client = new HttpClient())
+            await using (Stream stream = await client.GetStreamAsync(sourceFile))
+            await using (GZipStream zip = new GZipStream(stream, CompressionMode.Decompress))
+            using (StreamReader reader = new StreamReader(zip))
+            {
+                int startLine = 6;
+                int limit = 0;
+
+                for (int i = 0; i < startLine; i++)
                 {
-                    int startLine = 6;
-                    int limit = 2;
-
-                    for (int i = 0; i < startLine; i++)
+                    if (!reader.EndOfStream)
                     {
-                        if (!reader.EndOfStream)
-                        {
-                            await reader.ReadLineAsync();
-                        }
+                        await reader.ReadLineAsync();
                     }
-
-                    int count = 0;
-
-                    while (!reader.EndOfStream && count <= limit)
-                    {
-                        count++;
-                        
-                        string? csvLine = await reader.ReadLineAsync();
-
-                        string[] csvColumns = csvLine.Split(',');
-
-                        var getAirport = await _apRepo.GetAirportByICAOAsync(csvColumns[1]);
-
-                        if (getAirport is null)
-                        {
-                            //TODO: Add aiport
-                            getAirport = await _apRepo.GetAirportByICAOAsync("ESOW");
-                        }
-                        
-                        
-                        // map csvColumns to a METAR object.
-                        // var newMetar = new METAR()
-                        // {
-                        //     RawMetar = csvColumns[0],
-                        //     ICAO = csvColumns[1],
-                        //     ValidFrom = DateTime.Parse(csvColumns[2]),
-                        //     Temp = Convert.ToInt32(csvColumns[5]),
-                        //     DewPoint = Convert.ToInt32(csvColumns[6]),
-                        //     /* TODO:
-                        //      * Plocka sikt manuellt från RawMetar (eg. 9999)
-                        //      */
-                        //     WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]), //TODO: Could be "VRB"
-                        //     WindSpeedKt = Convert.ToInt32(csvColumns[8]),
-                        //     WindGustKt = csvColumns[9].IsNullOrEmpty() ? 0 : Convert.ToInt32(csvColumns[9]),
-                        //     VisibilityM = 1337, //TODO
-                        //     QNH = 0, //Convert.ToDouble(csvColumns[11]), //TODO - Could be empty, 12 has hpa sometimes, double?
-                        //     VerticalVisibilityFt = Convert.ToInt32(csvColumns[41]), // Todo: Remove for METAR?
-                        //     WxString = csvColumns[21],
-                        //     CloudLayers = new(),
-                        //     Rules = csvColumns[30],
-                        //     Airport = getAirport
-                        //     
-                        //     
-                        // };
-
-                        var newMetar = new METAR();
-                        newMetar.RawMetar = csvColumns[0] ?? "";
-                        newMetar.ICAO = csvColumns[1] ?? "";
-                        newMetar.ValidFrom = DateTime.TryParse(csvColumns[2], out DateTime validFrom) ? validFrom : DateTime.MinValue;
-                        newMetar.Temp = string.IsNullOrEmpty(csvColumns[5]) ? 0 : Convert.ToInt32(csvColumns[5]);
-                        newMetar.DewPoint = string.IsNullOrEmpty(csvColumns[6]) ? 0 : Convert.ToInt32(csvColumns[6]);
-                        newMetar.WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]);
-                        newMetar.WindSpeedKt = Convert.ToInt32(csvColumns[8]);
-                        newMetar.WindGustKt = string.IsNullOrEmpty(csvColumns[9]) ? 0 : Convert.ToInt32(csvColumns[9]);
-                        newMetar.VisibilityM = 1337; // Default value changed to 1337
-                        newMetar.QNH = string.IsNullOrEmpty(csvColumns[11]) ? 0.0 : Convert.ToDouble(csvColumns[11]); // Default value changed to 0.0
-                        newMetar.VerticalVisibilityFt = 0; // Todo: Remove for METAR?
-                        newMetar.WxString = csvColumns[21];
-                        newMetar.CloudLayers = new();
-                        newMetar.Rules = csvColumns[30];
-                        newMetar.Airport = getAirport;
-
-                      
-                        //Handle cloudLayers
-                        for (int i = 22; i <= 26; i += 2)
-                        {
-                            int cloudBase;
-                            bool success = int.TryParse(csvColumns[i + 1], out cloudBase);
-                            
-                            var newCloudLayer = new CloudModel()
-                            {
-                                Cover = csvColumns[i],
-                                CloudBase = success ? cloudBase : 0,
-                                CloudType = ""
-                            };
-                            newMetar.CloudLayers.Add(newCloudLayer);
-                        }
-                        
-                        
-                        
-                        // TODO: Add to DB
-                        _metarRepo.Add(newMetar);
-                        
-                    }
-                        _metarRepo.SaveChanges();
-
-                    
                 }
 
-        return true;
-    }
+                int count = 0;
 
-    public async Task<bool> FetchTaf()
-    {
-        throw new NotImplementedException();
-    }
-    
-   
+                while (!reader.EndOfStream)
+                {
 
-  }
+                    string? csvLine = await reader.ReadLineAsync();
+
+                    string[] csvColumns = csvLine.Split(',');
+
+                    string raw = csvColumns[0];
+                    bool isCavok = raw.Contains("CAVOK");
+                    string icaoCode = csvColumns[1];
+                    string latitude = csvColumns[3];
+                    string longitude = csvColumns[4];
+
+                    if (!icaoCode.StartsWith("ES"))
+                    {
+                        continue;
+                    }
+
+                    count++;
+
+
+                    double temp = string.IsNullOrEmpty(csvColumns[5]) 
+                        ? 0
+                        : double.Parse(csvColumns[5]);
+
+                    double dewPoint = string.IsNullOrEmpty(csvColumns[6])
+                        ? 0
+                        : double.Parse(csvColumns[6]);
+
+                    var getAirport = await _apRepo.GetAirportByICAOAsync(icaoCode);
+
+                    if (getAirport is null)
+                    {
+                        //TODO: Add aiport
+                        getAirport = await AddAiport(icaoCode, latitude, longitude);
+                    }
+
+         
+
+                    var newMetar = new METAR();
+                    newMetar.RawMetar = raw;
+                    newMetar.ICAO = csvColumns[1] ?? "";
+                    newMetar.ValidFrom = DateTime.TryParse(csvColumns[2], out DateTime validFrom) ? validFrom : DateTime.MinValue;
+                    newMetar.Temp = (int)Math.Round(temp);
+                    newMetar.DewPoint = (int)Math.Round(dewPoint);
+                    newMetar.WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]);
+                    newMetar.WindSpeedKt = Convert.ToInt32(csvColumns[8]);
+                    newMetar.WindGustKt = string.IsNullOrEmpty(csvColumns[9]) ? 0 : Convert.ToInt32(csvColumns[9]);
+                    newMetar.VisibilityM = ExtractVisibility(raw); // Default value changed to 1337
+                    newMetar.QNH = string.IsNullOrEmpty(csvColumns[11]) ? 0.0 : Convert.ToDouble(csvColumns[11]); // Default value changed to 0.0
+                    newMetar.VerticalVisibilityFt = 0; // Todo: Remove for METAR?
+                    newMetar.WxString = csvColumns[21];
+                    newMetar.CloudLayers = new();
+                    newMetar.Rules = csvColumns[30];
+                    newMetar.Airport = getAirport;
+
+
+                    //Handle cloudLayers
+                    for (int i = 22; i <= 26; i += 2)
+                    {
+                        int cloudBase;
+                        bool success = int.TryParse(csvColumns[i + 1], out cloudBase);
+
+                        var newCloudLayer = new CloudModel()
+                        {
+                            Cover = csvColumns[i],
+                            CloudBase = success ? cloudBase : 0,
+                            CloudType = ""
+                        };
+                        newMetar.CloudLayers.Add(newCloudLayer);
+                    }
+
+
+
+                    // TODO: Add to DB
+                    _metarRepo.Add(newMetar);
+
+                }
+                await Console.Out.WriteLineAsync($"Total iterated: {count}");
+
+                await _metarRepo.SaveChanges();
+
+
+            }
+
+            return true;
+        }
+
+        public async Task<bool> FetchTaf()
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task<Airport> AddAiport(string ICAO, string latitude, string logitude)
+        {
+
+            double lat = Convert.ToDouble(latitude);
+            double lon = Convert.ToDouble(logitude);
+
+            var coordinate = new Coordinate()
+            {
+                Y = lat,
+                X = lon,
+            };
+
+
+            var newAirport = new Airport()
+            {
+                ICAO = ICAO,
+                Location = new Point(coordinate) { SRID = 4326 }
+            };
+
+            await _apRepo.Add(newAirport);
+            await _apRepo.SaveChanges();
+
+            return newAirport;
+
+        }
+
+        private int ExtractVisibility(string rawString)
+        {
+            Regex visibilityRegex = new Regex(@"\b\d{4}\b");
+
+            Match match = visibilityRegex.Match(rawString);
+
+            if (match.Success)
+            {
+                return int.Parse(match.Value);
+            }
+           
+            return -1;
+
+        }
+
+
+
+    }
 }

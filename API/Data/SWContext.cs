@@ -1,15 +1,13 @@
 ﻿using API.Models;
 using API.Models.DB;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Newtonsoft.Json;
 
 namespace API.Data
 {
     public class SWContext : DbContext
     {
-        public SWContext(DbContextOptions options) : base (options) {}
+        public SWContext(DbContextOptions options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -24,7 +22,8 @@ namespace API.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TAF>()
-                .OwnsMany(taf => taf.Forcasts, builder => { 
+                .OwnsMany(taf => taf.Forcasts, builder =>
+                {
                     builder.ToJson();
                     builder.Property(f => f.CloudLayers)
                         .HasConversion(
@@ -33,7 +32,7 @@ namespace API.Data
 
                 });
 
-     
+
 
             modelBuilder.Entity<METAR>()
                 .OwnsMany(metar => metar.CloudLayers, builder => { builder.ToJson(); });
