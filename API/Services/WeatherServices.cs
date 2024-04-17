@@ -194,9 +194,10 @@ namespace API.Services
 
 
                     var newMetar = new METAR();
+
                     newMetar.RawMetar = raw;
                     newMetar.ICAO = csvColumns[1] ?? "";
-                    newMetar.ValidFrom = DateTime.TryParse(csvColumns[2], out DateTime validFrom) ? validFrom : DateTime.MinValue;
+                    newMetar.ValidFrom = DateTime.TryParse(csvColumns[2], out DateTime validFrom) ? validFrom.ToUniversalTime() : DateTime.MinValue;
                     newMetar.Temp = (int)Math.Round(temp);
                     newMetar.DewPoint = (int)Math.Round(dewPoint);
                     newMetar.WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]);
@@ -278,19 +279,19 @@ namespace API.Services
 
 
 
-                    var newMetar = new TAF()
+                    var newTAF = new TAF()
                     {
                         RawTAF = raw,
                         ICAO = icaoCode,
-                        IssueTime = DateTime.Parse(csvColumns[2]),
-                        ValidFrom = DateTime.Parse(csvColumns[4]),
-                        ValidTo = DateTime.Parse(csvColumns[5]),
+                        IssueTime = DateTime.Parse(csvColumns[2]).ToUniversalTime(),
+                        ValidFrom = DateTime.Parse(csvColumns[4]).ToUniversalTime(),
+                        ValidTo = DateTime.Parse(csvColumns[5]).ToUniversalTime(),
                         Remarks = csvColumns[6],
                         Forcasts = ParseForcastsFromCsv(csvColumns),
                         Airport = getAirport,
                     };
 
-                    await _tafRepo.Add(newMetar);
+                    await _tafRepo.Add(newTAF);
 
 
                 }
@@ -382,10 +383,10 @@ namespace API.Services
 
                 var newForcast = new Forcast();
 
-                newForcast.ForcastFromTime = csvColumn[i].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i]);
-                newForcast.ForcastToTime = csvColumn[i + 1].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i + 1]);
+                newForcast.ForcastFromTime = csvColumn[i].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i]).ToUniversalTime();
+                newForcast.ForcastToTime = csvColumn[i + 1].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i + 1]).ToUniversalTime();
                 newForcast.ChangeIndicator = csvColumn[i + 2];
-                newForcast.BecomingTime = csvColumn[i + 3].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i + 3]);
+                newForcast.BecomingTime = csvColumn[i + 3].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i + 3]).ToUniversalTime();
                 newForcast.WindDirectionDeg = csvColumn[i + 5] == "VRB" || csvColumn[i + 5].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 5]);
                 newForcast.WindSpeedKt = csvColumn[i + 6].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 6]);
                 newForcast.WindGustKt = csvColumn[i + 7].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 7]);
