@@ -38,12 +38,23 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("/manual/test")]
+        [HttpGet("/manual/metartest")]
 
         public async Task<IActionResult> Lab()
         {
 
             await weatherDataHandler.FetchMetar();
+
+            return Ok();
+        }
+
+
+        [HttpGet("/manual/taftest")]
+
+        public async Task<IActionResult> TafLab()
+        {
+
+            await weatherDataHandler.FetchTaf();
 
             return Ok();
         }

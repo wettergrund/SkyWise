@@ -21,8 +21,8 @@ namespace API.Models.DB
 
     public class Forcast
     {
-        public DateTime ForcastFromTime { get; set; }
-        public DateTime ForcastToTime { get; set; }
+        public DateTime? ForcastFromTime { get; set; }
+        public DateTime? ForcastToTime { get; set; }
         public string? ChangeIndicator { get; set; }
         public DateTime? BecomingTime { get; set; }
         public Probability Probability { get; set; } = Probability.Empty;

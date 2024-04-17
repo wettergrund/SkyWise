@@ -1,6 +1,7 @@
 using API.Models;
 using API.Models.DB;
 using API.Repositories;
+using Microsoft.IdentityModel.Tokens;
 using NetTopologySuite.Geometries;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
@@ -174,7 +175,7 @@ namespace API.Services
                     count++;
 
 
-                    double temp = string.IsNullOrEmpty(csvColumns[5]) 
+                    double temp = string.IsNullOrEmpty(csvColumns[5])
                         ? 0
                         : double.Parse(csvColumns[5]);
 
@@ -190,7 +191,7 @@ namespace API.Services
                         getAirport = await AddAiport(icaoCode, latitude, longitude);
                     }
 
-         
+
 
                     var newMetar = new METAR();
                     newMetar.RawMetar = raw;
@@ -205,26 +206,9 @@ namespace API.Services
                     newMetar.QNH = string.IsNullOrEmpty(csvColumns[11]) ? 0.0 : Convert.ToDouble(csvColumns[11]); // Default value changed to 0.0
                     newMetar.VerticalVisibilityFt = 0; // Todo: Remove for METAR?
                     newMetar.WxString = csvColumns[21];
-                    newMetar.CloudLayers = new();
+                    newMetar.CloudLayers = ParseCloudInfo(csvColumns);
                     newMetar.Rules = csvColumns[30];
                     newMetar.Airport = getAirport;
-
-
-                    //Handle cloudLayers
-                    for (int i = 22; i <= 26; i += 2)
-                    {
-                        int cloudBase;
-                        bool success = int.TryParse(csvColumns[i + 1], out cloudBase);
-
-                        var newCloudLayer = new CloudModel()
-                        {
-                            Cover = csvColumns[i],
-                            CloudBase = success ? cloudBase : 0,
-                            CloudType = ""
-                        };
-                        newMetar.CloudLayers.Add(newCloudLayer);
-                    }
-
 
 
                     // TODO: Add to DB
@@ -243,7 +227,105 @@ namespace API.Services
 
         public async Task<bool> FetchTaf()
         {
-            throw new NotImplementedException();
+            string sourceFile = "https://aviationweather.gov/data/cache/tafs.cache.csv.gz";
+
+            using (HttpClient client = new HttpClient())
+            await using (Stream stream = await client.GetStreamAsync(sourceFile))
+            await using (GZipStream zip = new GZipStream(stream, CompressionMode.Decompress))
+            using (StreamReader reader = new StreamReader(zip))
+            {
+                int startLine = 6;
+                int limit = 0;
+
+                for (int i = 0; i < startLine; i++)
+                {
+                    if (!reader.EndOfStream)
+                    {
+                        await reader.ReadLineAsync();
+                    }
+                }
+
+                int count = 0;
+
+                while (!reader.EndOfStream)
+                {
+
+                    string? csvLine = await reader.ReadLineAsync();
+
+                    string[] csvColumns = csvLine.Split(',');
+
+                    string raw = csvColumns[0];
+                    bool isCavok = raw.Contains("CAVOK");
+                    string icaoCode = csvColumns[1];
+                    string latitude = csvColumns[7];
+                    string longitude = csvColumns[8];
+
+                    if (!icaoCode.StartsWith("ES"))
+                    {
+                        continue;
+                    }
+
+                    count++;
+
+
+                    var getAirport = await _apRepo.GetAirportByICAOAsync(icaoCode);
+
+                    if (getAirport is null)
+                    {
+                        //TODO: Add aiport
+                        getAirport = await AddAiport(icaoCode, latitude, longitude);
+                    }
+
+
+
+                    var newMetar = new TAF()
+                    {
+                        RawTAF = raw,
+                        ICAO = icaoCode,
+                        IssueTime = DateTime.Parse(csvColumns[2]),
+                        ValidFrom = DateTime.Parse(csvColumns[4]),
+                        ValidTo = DateTime.Parse(csvColumns[5]),
+                        Remarks = csvColumns[6],
+                        Forcasts = ParseForcastsFromCsv(csvColumns),
+                        Airport = getAirport,
+                    };
+
+                    await _tafRepo.Add(newMetar);
+
+
+                }
+                await Console.Out.WriteLineAsync($"Total iterated TAF: {count}");
+
+                await _metarRepo.SaveChanges();
+
+
+            }
+
+            return true;
+        }
+
+
+        private List<CloudModel> ParseCloudInfo(string[] rawData, int startPos = 22, int endPos = 26, int inc = 2)
+        {
+            var list = new List<CloudModel>();
+            for (int i = startPos; i <= endPos; i += inc)
+            {
+                if (rawData[i].IsNullOrEmpty()) { continue; }
+
+                int cloudBase;
+                bool success = int.TryParse(rawData[i + 1], out cloudBase);
+
+                var newCloudLayer = new CloudModel()
+                {
+                    Cover = rawData[i],
+                    CloudBase = success ? cloudBase : 0,
+                    CloudType = inc == 3 ? rawData[i + 2] : ""
+                };
+                list.Add(newCloudLayer);
+            }
+
+            return list;
+
         }
 
         private async Task<Airport> AddAiport(string ICAO, string latitude, string logitude)
@@ -282,11 +364,63 @@ namespace API.Services
             {
                 return int.Parse(match.Value);
             }
-           
+
             return -1;
 
         }
 
+        private List<Forcast> ParseForcastsFromCsv(string[] csvColumn)
+        {
+            var forcastList = new List<Forcast>();
+
+
+
+            for (int i = 10; i <= 269; i += 37)
+            {
+
+                if (csvColumn[i].IsNullOrEmpty()) { break; }
+
+                var newForcast = new Forcast();
+
+                newForcast.ForcastFromTime = csvColumn[i].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i]);
+                newForcast.ForcastToTime = csvColumn[i + 1].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i + 1]);
+                newForcast.ChangeIndicator = csvColumn[i + 2];
+                newForcast.BecomingTime = csvColumn[i + 3].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i + 3]);
+                newForcast.WindDirectionDeg = csvColumn[i + 5] == "VRB" || csvColumn[i + 5].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 5]);
+                newForcast.WindSpeedKt = csvColumn[i + 6].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 6]);
+                newForcast.WindGustKt = csvColumn[i + 7].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 7]);
+                newForcast.VisibilityM = 1337; //FIX
+                newForcast.VerticalVisibilityFt = 1337; // FIX
+                newForcast.WxString = csvColumn[i + 14];
+                newForcast.CloudLayers = ParseCloudInfo(csvColumn, i + 16, i + 22, 3);
+
+
+
+                switch (csvColumn[i + 4])
+                {
+                    case "40":
+                    newForcast.Probability = Probability.P40;
+                    break;
+                    case "30":
+                    newForcast.Probability = Probability.P30;
+
+                    break;
+                    default:
+                    newForcast.Probability = Probability.Empty;
+                    break;
+                }
+
+                /* TODO:
+                 * ParseCloud
+                 */
+
+                forcastList.Add(newForcast);
+
+            }
+
+
+            return forcastList;
+        }
 
 
     }
