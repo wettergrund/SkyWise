@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace API.Models.DB
 {
@@ -14,7 +15,9 @@ namespace API.Models.DB
         public DateTime ValidFrom { get; set; }
         public DateTime ValidTo { get; set; }
         public string? Remarks { get; set; }
-        public List<Forcast> Forcasts { get; set; } = new();
+        public List<Forcast> Forcasts { get; set; } = new(); //Fix typo
+        
+        [JsonIgnore]
         public virtual Airport Airport { get; set; }
 
     }
@@ -34,20 +37,11 @@ namespace API.Models.DB
         public string WxString { get; set; }
         public List<CloudModel> CloudLayers { get; set; }
     }
-    [NotMapped]
-    public class TAFCloud
-    {
-        public string Cover { get; set; }
-        public int CloudBase { get; set; }
-        public string CloudType { get; set; }
-
-    }
 
     public enum Probability
     {
         Empty,
         P30,
         P40
-
     }
 }

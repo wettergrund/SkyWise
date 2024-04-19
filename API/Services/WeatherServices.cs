@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 
 namespace API.Services
 {
-
     class WeatherDataHandler : IWeatherDataHandler
     {
         private readonly IWeatherRepo _repo;
@@ -56,7 +55,6 @@ namespace API.Services
                 },
                 Rules = "IFR",
                 Airport = ap
-
             };
 
             var newTaf = new TAF()
@@ -85,7 +83,6 @@ namespace API.Services
                     VerticalVisibilityFt = 1000,
                     WxString = "-SN",
                     CloudLayers = new()
-
                 }
             };
 
@@ -94,7 +91,6 @@ namespace API.Services
                 CloudBase = 1500,
                 CloudType = "",
                 Cover = "BKN"
-
             };
 
             forcast.First().CloudLayers.Add(newCloudlayer);
@@ -107,21 +103,15 @@ namespace API.Services
             await _metarRepo.SaveChanges();
 
 
-
-
             return true;
-
         }
 
         public async Task<AirportWeather> GetWeatherByICAO(string ICAO)
         {
-
             var result = await _repo.GetAirportWeatherAsync(ICAO);
 
 
-
             return result;
-
         }
 
         public async Task<bool> FetchMetar()
@@ -156,7 +146,6 @@ namespace API.Services
 
                 while (!reader.EndOfStream)
                 {
-
                     string? csvLine = await reader.ReadLineAsync();
 
                     string[] csvColumns = csvLine.Split(',');
@@ -192,19 +181,23 @@ namespace API.Services
                     }
 
 
-
                     var newMetar = new METAR();
 
                     newMetar.RawMetar = raw;
                     newMetar.ICAO = csvColumns[1] ?? "";
-                    newMetar.ValidFrom = DateTime.TryParse(csvColumns[2], out DateTime validFrom) ? validFrom.ToUniversalTime() : DateTime.MinValue;
+                    newMetar.ValidFrom = DateTime.TryParse(csvColumns[2], out DateTime validFrom)
+                        ? validFrom.ToUniversalTime()
+                        : DateTime.MinValue;
                     newMetar.Temp = (int)Math.Round(temp);
                     newMetar.DewPoint = (int)Math.Round(dewPoint);
                     newMetar.WindDirectionDeg = csvColumns[7] == "VRB" ? -1 : Convert.ToInt32(csvColumns[7]);
                     newMetar.WindSpeedKt = Convert.ToInt32(csvColumns[8]);
                     newMetar.WindGustKt = string.IsNullOrEmpty(csvColumns[9]) ? 0 : Convert.ToInt32(csvColumns[9]);
                     newMetar.VisibilityM = ExtractVisibility(raw); // Default value changed to 1337
-                    newMetar.QNH = string.IsNullOrEmpty(csvColumns[11]) ? 0.0 : Convert.ToDouble(csvColumns[11]); // Default value changed to 0.0
+                    newMetar.QNH =
+                        string.IsNullOrEmpty(csvColumns[11])
+                            ? 0.0
+                            : Convert.ToDouble(csvColumns[11]); // Default value changed to 0.0
                     newMetar.VerticalVisibilityFt = 0; // Todo: Remove for METAR?
                     newMetar.WxString = csvColumns[21];
                     newMetar.CloudLayers = ParseCloudInfo(csvColumns);
@@ -214,13 +207,11 @@ namespace API.Services
 
                     // TODO: Add to DB
                     _metarRepo.Add(newMetar);
-
                 }
+
                 await Console.Out.WriteLineAsync($"Total iterated: {count}");
 
                 await _metarRepo.SaveChanges();
-
-
             }
 
             return true;
@@ -250,7 +241,6 @@ namespace API.Services
 
                 while (!reader.EndOfStream)
                 {
-
                     string? csvLine = await reader.ReadLineAsync();
 
                     string[] csvColumns = csvLine.Split(',');
@@ -278,7 +268,6 @@ namespace API.Services
                     }
 
 
-
                     var newTAF = new TAF()
                     {
                         RawTAF = raw,
@@ -292,14 +281,11 @@ namespace API.Services
                     };
 
                     await _tafRepo.Add(newTAF);
-
-
                 }
+
                 await Console.Out.WriteLineAsync($"Total iterated TAF: {count}");
 
                 await _metarRepo.SaveChanges();
-
-
             }
 
             return true;
@@ -311,7 +297,10 @@ namespace API.Services
             var list = new List<CloudModel>();
             for (int i = startPos; i <= endPos; i += inc)
             {
-                if (rawData[i].IsNullOrEmpty()) { continue; }
+                if (rawData[i].IsNullOrEmpty())
+                {
+                    continue;
+                }
 
                 int cloudBase;
                 bool success = int.TryParse(rawData[i + 1], out cloudBase);
@@ -326,12 +315,10 @@ namespace API.Services
             }
 
             return list;
-
         }
 
         private async Task<Airport> AddAiport(string ICAO, string latitude, string logitude)
         {
-
             double lat = Convert.ToDouble(latitude);
             double lon = Convert.ToDouble(logitude);
 
@@ -352,7 +339,6 @@ namespace API.Services
             await _apRepo.SaveChanges();
 
             return newAirport;
-
         }
 
         private int ExtractVisibility(string rawString)
@@ -367,62 +353,59 @@ namespace API.Services
             }
 
             return -1;
-
         }
 
         private List<Forcast> ParseForcastsFromCsv(string[] csvColumn)
         {
             var forcastList = new List<Forcast>();
 
-
-
             for (int i = 10; i <= 269; i += 37)
             {
-
-                if (csvColumn[i].IsNullOrEmpty()) { break; }
-
-                var newForcast = new Forcast();
-
-                newForcast.ForcastFromTime = csvColumn[i].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i]).ToUniversalTime();
-                newForcast.ForcastToTime = csvColumn[i + 1].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i + 1]).ToUniversalTime();
-                newForcast.ChangeIndicator = csvColumn[i + 2];
-                newForcast.BecomingTime = csvColumn[i + 3].IsNullOrEmpty() ? DateTime.MinValue : DateTime.Parse(csvColumn[i + 3]).ToUniversalTime();
-                newForcast.WindDirectionDeg = csvColumn[i + 5] == "VRB" || csvColumn[i + 5].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 5]);
-                newForcast.WindSpeedKt = csvColumn[i + 6].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 6]);
-                newForcast.WindGustKt = csvColumn[i + 7].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 7]);
-                newForcast.VisibilityM = 1337; //FIX
-                newForcast.VerticalVisibilityFt = 1337; // FIX
-                newForcast.WxString = csvColumn[i + 14];
-                newForcast.CloudLayers = ParseCloudInfo(csvColumn, i + 16, i + 22, 3);
-
-
-
-                switch (csvColumn[i + 4])
+                if (csvColumn[i].IsNullOrEmpty())
                 {
-                    case "40":
-                    newForcast.Probability = Probability.P40;
-                    break;
-                    case "30":
-                    newForcast.Probability = Probability.P30;
-
-                    break;
-                    default:
-                    newForcast.Probability = Probability.Empty;
                     break;
                 }
+                
+                var newForecast = new Forcast();
+                
+                MapForecast(newForecast, csvColumn, i);
 
-                /* TODO:
-                 * ParseCloud
-                 */
-
-                forcastList.Add(newForcast);
-
+                forcastList.Add(newForecast);
             }
-
-
+            
             return forcastList;
         }
 
 
+        private void MapForecast(Forcast model, string[] csvColumn, int i)
+        {
+                var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
+                model.ForcastFromTime = DateTime.Parse(csvColumn[i]).ToUniversalTime();
+                model.ForcastToTime = DateTime.Parse(csvColumn[i + 1]).ToUniversalTime();
+                model.ChangeIndicator = csvColumn[i + 2];
+                model.BecomingTime = csvColumn[i + 3].IsNullOrEmpty()
+                    ? DateTime.MinValue
+                    : unixEpoch.AddSeconds(double.Parse(csvColumn[i + 3])).ToUniversalTime(); //FIX?
+                model.WindDirectionDeg = csvColumn[i + 5] == "VRB" || csvColumn[i + 5].IsNullOrEmpty()
+                    ? 0
+                    : int.Parse(csvColumn[i + 5]);
+                model.WindSpeedKt = csvColumn[i + 6].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 6]);
+                model.WindGustKt = csvColumn[i + 7].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 7]);
+                model.VisibilityM = 1337; //FIX
+                model.VerticalVisibilityFt = 1337; // FIX
+                model.WxString = csvColumn[i + 14];
+                model.CloudLayers = ParseCloudInfo(csvColumn, i + 16, i + 22, 3);
+                model.Probability = ParseProb(csvColumn[i + 4]);
+
+        }
+
+        private static Probability ParseProb(string probSting)
+        {
+            if (probSting.IsNullOrEmpty()) return Probability.Empty;
+
+            return probSting == "40" ? Probability.P40 : Probability.P30;
+
+        }
     }
 }

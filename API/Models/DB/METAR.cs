@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace API.Models.DB
 {
@@ -25,18 +26,10 @@ namespace API.Models.DB
         public string Rules { get; set; }
 
 
+        [JsonIgnore]
         public virtual Airport Airport { get; set; }
 
-
     }
 
-
-    public class METARCloud
-    {
-        public string Cover { get; set; }
-        public int CloudBase { get; set; }
-        public string CloudType { get; set; }
-
-
-    }
+    
 }
