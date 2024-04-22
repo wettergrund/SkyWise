@@ -9,3 +9,16 @@ obj/
 
 *Development.json
 
+## Client
+
+.DS_Store
+node_modules
+build/
+.svelte-kit/
+package/
+.en
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+.prettierignore
