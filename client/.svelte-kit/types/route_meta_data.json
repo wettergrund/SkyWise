@@ -1,6 +1,0 @@
-{
-	"/": [],
-	"/search": [
-		"src/routes/search/+page.server.js"
-	]
-}
