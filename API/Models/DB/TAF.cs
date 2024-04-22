@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace API.Models.DB
@@ -24,8 +23,8 @@ namespace API.Models.DB
 
     public class Forcast
     {
-        public DateTime? ForcastFromTime { get; set; }
-        public DateTime? ForcastToTime { get; set; }
+        public DateTime? ForcastFromTime { get; set; } //Fix typo
+        public DateTime? ForcastToTime { get; set; } //Fix typo
         public string? ChangeIndicator { get; set; }
         public DateTime? BecomingTime { get; set; }
         public Probability Probability { get; set; } = Probability.Empty;
