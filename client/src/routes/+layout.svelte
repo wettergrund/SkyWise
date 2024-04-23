@@ -1,5 +1,36 @@
 <script>
-    import { from, to } from '../stores/store'
+    import Auth from '../components/Auth.svelte';
+import { from, to } from '../stores/store'
+import { authStore, authHandlers } from '../stores/authStore';
+import { onMount } from 'svelte';
+import { auth } from '../lib/firebase/firebase.client';
+	import { browser } from '$app/environment';
+
+	
+onMount(() => {
+		const unsubscribe = auth.onAuthStateChanged((user) => {
+			console.log(user);
+			// @ts-ignore
+			authStore.update((curr) => {
+				return { ...curr, isLoading: false, currentUser: user };
+			});
+
+			if (
+				browser &&
+				!$authStore?.currentUser &&
+				!$authStore.isLoading &&
+				window.location.pathname !== '/'
+			) {
+				window.location.href = '/';
+				// @ts-ignore
+				console.log(authStore.currentUser, authStore.isLoading);
+			}
+		});
+
+
+		return unsubscribe;
+	});
+
 
   // your script goes here
 </script>
@@ -24,4 +55,15 @@
 
 </div>
 <slot></slot>
+Hej
+
+{#if !$authStore.currentUser}
+<Auth/>
+{:else}
+{
+  $authStore.currentUser.email
+
+} <br>
+<button on:click={async () => await authHandlers.logout()}>Logout</button>
+{/if}
 
