@@ -5,9 +5,15 @@
 </script>
 <style lang="scss">
   @import '../style.scss';
-
   
+
+  div {
+    background-color:#cddefa;
+  }
 </style>
+<div>
+
+
 <h1>SkyWise</h1>
 
 
@@ -16,6 +22,6 @@
 
 <p>Navbar</p>
 
+</div>
 <slot></slot>
-
 

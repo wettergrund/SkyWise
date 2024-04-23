@@ -37,22 +37,18 @@
 
 
 
-<div>
-<div in:fade >
+<div class="form-wrapper">
+<div class="form">
     
     <form method="POST" action="?/get">
         
         <!-- // From -->
-        <label>Departure
-            <input name="from" type="text" on:input={updateIcao}/>
-        </label>
+            <input name="from" placeholder="Departure" type="text" on:input={updateIcao}/>
         
         
         <!-- // To -->
-        <label>Arrival
-            <input name="to" type="text"  on:input={updateIcao} />
-        </label>
-        <button type="submit">Hej</button>
+            <input name="to" placeholder="Arrival" type="text"  on:input={updateIcao} />
+        <button type="submit">Get weather</button>
         
     </form>
     
@@ -72,7 +68,7 @@
 {#if form?.success}
 
 {
-    form?.from.metar.rawMetar
+    form?.from.metar.rules
 }
 <br/>
 {
@@ -83,7 +79,7 @@
 
 
 {
-    form?.to?.metar.rawMetar
+    form?.to?.metar.rules
 }
 <br/>
 {
@@ -94,10 +90,20 @@
 </div>
 
 <style>
-    div{
-        background-color: antiquewhite;
-   
+  input{
+    border: 0;
+    height: 2.5rem;
 
-     
-    }
+  }
+  .form > form{
+    
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+  form > input {
+    border: 1px solid #a0a0a0;
+    border-radius: 5px;
+  }
 </style>

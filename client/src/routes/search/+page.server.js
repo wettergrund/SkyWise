@@ -32,6 +32,8 @@ export const actions = {
             // /** @type {import('$lib/weatherTypes').WeatherData} */
             toWeatherInfo = toJson;
 
+            console.log(toWeatherInfo)
+
 
 
         }
