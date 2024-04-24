@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, deleteApp } from "firebase/app";
-import { getAuth, setPersistence, inMemoryPersistence } from "firebase/auth"
+import { getAuth, setPersistence, inMemoryPersistence, signInWithPopup, GoogleAuthProvider } from "firebase/auth"
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 const env = import.meta.env;
@@ -27,4 +27,13 @@ else
   firebaseApp = initializeApp(firebaseConfig);
 }
 
+
 export const auth = getAuth(firebaseApp)
+
+
+export const handleG = () =>{
+  console.log("Google popup!")
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
+
+}

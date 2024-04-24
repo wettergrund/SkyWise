@@ -3,7 +3,7 @@
 import { from, to } from '../stores/store'
 import { authStore, authHandlers } from '../stores/authStore';
 import { onMount } from 'svelte';
-import { auth } from '../lib/firebase/firebase.client';
+import { auth, handleG } from '../lib/firebase/firebase.client';
 	import { browser } from '$app/environment';
 
 	
@@ -21,7 +21,7 @@ onMount(() => {
 				!$authStore.isLoading &&
 				window.location.pathname !== '/'
 			) {
-				window.location.href = '/';
+				// window.location.href = '/';
 				// @ts-ignore
 				console.log(authStore.currentUser, authStore.isLoading);
 			}
@@ -59,11 +59,14 @@ Hej
 
 {#if !$authStore.currentUser}
 <Auth/>
+<br>
+<button on:click={handleG}>Google</button>
 {:else}
 {
   $authStore.currentUser.email
 
 } <br>
+
 <button on:click={async () => await authHandlers.logout()}>Logout</button>
 {/if}
 
