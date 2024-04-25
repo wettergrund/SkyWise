@@ -6,7 +6,12 @@ import { onMount } from 'svelte';
 import { auth, handleG } from '../lib/firebase/firebase.client';
 	import { browser } from '$app/environment';
 
-	
+	import Login from '../components/Login.svelte';
+	import Navbar from '../components/Navbar.svelte';
+
+import "../app.pcss"
+import "../style.scss"
+	  import { Footer, FooterBrand, FooterCopyright, FooterIcon, FooterLink, FooterLinkGroup } from 'flowbite-svelte';
 onMount(() => {
 		const unsubscribe = auth.onAuthStateChanged((user) => {
 			console.log(user);
@@ -34,39 +39,14 @@ onMount(() => {
 
   // your script goes here
 </script>
-<style lang="scss">
-  @import '../style.scss';
-  
-
-  div {
-    background-color:#cddefa;
-  }
-</style>
-<div>
+<Navbar/>
 
 
-<h1>SkyWise</h1>
+<div style="min-height: 80vh;">
 
 
-<p>{$from.toUpperCase()}</p>
-<p>{$to.toUpperCase()}</p>
 
-<p>Navbar</p>
 
-</div>
 <slot></slot>
-Hej
-
-{#if !$authStore.currentUser}
-<Auth/>
-<br>
-<button on:click={handleG}>Google</button>
-{:else}
-{
-  $authStore.currentUser.email
-
-} <br>
-
-<button on:click={async () => await authHandlers.logout()}>Logout</button>
-{/if}
-
+</div>
+<Footer>© Copy</Footer>
