@@ -1,7 +1,11 @@
 using API.Data;
 using API.Repositories;
 using API.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
 
 namespace API
 {
@@ -10,21 +14,18 @@ namespace API
     {
         public static void Main(string[] args)
         {
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
+
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            SetupAuhentication(builder);
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // Auth
-            var auth0 = builder.Configuration.GetSection("auth0");
-            string auth0Domain = auth0["Domain"];
-            string auth0ClientId = auth0["ClientId"];
-            string auth0RedirectUri = auth0["RedirectUri"];
-            string auth0PostLogoutRedirectUri = auth0["PostLogoutRedirectUri"];
 
             // DB context 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -40,13 +41,7 @@ namespace API
             builder.Services.AddScoped<IWeatherRepo, WeatherRepo>();
             builder.Services.AddScoped<IMetarRepo, MetarRepo>();
             builder.Services.AddScoped<ITafRepo, TafRepo>();
-
             builder.Services.AddScoped<IAirportRepo, AirportRepo>();
-
-
-
-
-
 
 
             var app = builder.Build();
@@ -60,6 +55,7 @@ namespace API
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
@@ -67,6 +63,31 @@ namespace API
 
             app.Run();
         }
+
+        private static void SetupAuhentication(WebApplicationBuilder builder)
+        {
+            string productId = builder.Configuration["Auth:ProductId"] ?? throw new InvalidOperationException("Add Firebase prtoductID to configuration");
+            string googleEndpoint = "https://securetoken.google.com/" + productId;
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = googleEndpoint;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = googleEndpoint,
+                        ValidateAudience = true,
+                        ValidAudience = productId,
+                        ValidateLifetime = true
+                    };
+                });
+            }
 
 
 
