@@ -179,7 +179,6 @@ namespace API.Services
 
                     if (getAirport is null)
                     {
-                        //TODO: Add aiport
                         getAirport = await AddAiport(icaoCode, latitude, longitude);
                     }
 
@@ -208,7 +207,6 @@ namespace API.Services
                     newMetar.Airport = getAirport;
 
 
-                    // TODO: Add to DB
                     _metarRepo.Add(newMetar);
                 }
 
@@ -266,7 +264,6 @@ namespace API.Services
 
                     if (getAirport is null)
                     {
-                        //TODO: Add aiport
                         getAirport = await AddAiport(icaoCode, latitude, longitude);
                     }
 
