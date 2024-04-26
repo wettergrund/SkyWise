@@ -1,4 +1,5 @@
 using API.Data;
+using API.Models.DB;
 using API.Repositories;
 using API.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -28,20 +29,30 @@ namespace API
 
 
             // DB context 
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
             builder.Services.AddDbContext<SWContext>
             (
-            options =>
-               options.UseSqlServer(connectionString),
-               ServiceLifetime.Scoped
+                options =>
+                   options.UseSqlServer(connectionString),
+                   ServiceLifetime.Scoped
             );
 
 
             builder.Services.AddScoped<IWeatherDataHandler, WeatherDataHandler>();
+            builder.Services.AddScoped<IUserServices, UserServices>();
+
             builder.Services.AddScoped<IWeatherRepo, WeatherRepo>();
             builder.Services.AddScoped<IMetarRepo, MetarRepo>();
             builder.Services.AddScoped<ITafRepo, TafRepo>();
             builder.Services.AddScoped<IAirportRepo, AirportRepo>();
+
+            builder.Services.AddScoped<IUserRepo, UserRepo>();
+            builder.Services.AddScoped<IRepoBase<UserAirportFavorite>, RepoBase<UserAirportFavorite>>();
+            builder.Services.AddScoped<IRepoBase<UserAirportHistory>, RepoBase<UserAirportHistory>>();
+
+
+
 
 
             var app = builder.Build();

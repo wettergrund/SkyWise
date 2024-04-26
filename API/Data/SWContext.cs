@@ -46,10 +46,10 @@ namespace API.Data
 
         public DbSet<TAF> TAF { get; set; }
         public DbSet<METAR> METAR { get; set; }
-        //public DbSet<User> User { get; set; }
+        public DbSet<User> User { get; set; }
 
-        //public DbSet<UserAirportFavorite> UserAirportFavorite { get; set; }
-        //public DbSet<UserAirportHistory> UserAirportHistory { get; set; }
+        public DbSet<UserAirportFavorite> UserAirportFavorite { get; set; }
+        public DbSet<UserAirportHistory> UserAirportHistory { get; set; }
 
 
 

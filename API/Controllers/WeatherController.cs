@@ -1,17 +1,22 @@
 ﻿using API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WeatherController(IWeatherDataHandler weatherDataHandler) : Controller
+    public class WeatherController(IWeatherDataHandler weatherDataHandler) : ControllerBase
     {
-
 
         [HttpGet]
         public async Task<IActionResult> GetCurrentWeather(string ICAO)
         {
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
 
             /*TODO:
              * Ceck cache
@@ -28,15 +33,15 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("/manual/addtaf")]
+        //[HttpGet("/manual/addtaf")]
 
-        public async Task<IActionResult> AddTaf()
-        {
+        //public async Task<IActionResult> AddTaf()
+        //{
 
-            var result = await weatherDataHandler.AddTaf();
+        //    var result = await weatherDataHandler.AddTaf();
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
         [HttpGet("/manual/metartest")]
 

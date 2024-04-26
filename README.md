@@ -1,6 +1,6 @@
 # SkyWise
 This project is the practical part of my graduate thesis.
-
+ 
 The application is main goal is to server private pilots with accurate weather data at departure airport, arrival airport and along the route. Logged in user should also be able to save a flight for a specific date and track if there is a go or no-go based on weather forcast.
 
 ## Problem

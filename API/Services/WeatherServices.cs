@@ -4,7 +4,9 @@ using API.Repositories;
 using Microsoft.IdentityModel.Tokens;
 using NetTopologySuite.Geometries;
 using System.IO.Compression;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
+
 
 namespace API.Services
 {
@@ -108,6 +110,7 @@ namespace API.Services
 
         public async Task<AirportWeather> GetWeatherByICAO(string ICAO)
         {
+
             var result = await _repo.GetAirportWeatherAsync(ICAO);
 
 
