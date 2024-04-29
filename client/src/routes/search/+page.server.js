@@ -9,7 +9,7 @@ export const actions = {
      * @typedef {import('$lib/weatherTypes').WeatherData} WeatherData
      * @param {object} params - Request parameters.
      * @param {Request} params.request - The request object.
-     * @returns {Promise<{ success: boolean, from: WeatherData, to: WeatherData | null }>} A promise that resolves to an object containing success status and weather data.
+     * @returns {Promise<{ success: boolean, from: WeatherData | null, to: WeatherData | null }>} A promise that resolves to an object containing success status and weather data.
      */
     get: async ({request}) => { 
 

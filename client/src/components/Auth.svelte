@@ -2,10 +2,11 @@
 	import { redirect } from '@sveltejs/kit';
 	import { authHandlers, authStore } from '../stores/authStore';
 	import { goto } from '$app/navigation';
-	import { Button, Modal, Label, Input, Checkbox } from 'flowbite-svelte';
+	import { Button, Modal, Label, Input, Checkbox, A } from 'flowbite-svelte';
 	import { handleG } from "$lib/firebase/firebase.client"
   import {   ArrowLeftToBracketOutline  } from 'flowbite-svelte-icons';
-
+  import { Hr } from 'flowbite-svelte';
+  import { QuoteSolid } from 'flowbite-svelte-icons';
 
 
 	let formModal = false;
@@ -66,8 +67,10 @@
 		  <span style="display: none;">Continue with Google</span>
 		</div>
 	  </button>
-	<div class="separator">Or use email and password</div>
-
+  <Hr classHr="my-8 w-64" >
+  Or
+  </Hr>
+  <h2>Log in with email and password.</h2>
 	<form class="flex flex-col space-y-6" action="#">
 		<Label class="space-y-2">
 			<span>Email</span>
@@ -86,12 +89,12 @@
 		{/if}
 		<div>
 
-			<Button size="sm" on:click={handleSubmit} class="w-full1">
+			<Button size="sm" on:click={handleSubmit} class="">
 			{register ? "Submit" : "Log in"}
 				<!-- Submit -->
 			</Button>
 			{#if !register}
-			<Button size="sm" outline color="dark" on:click={() => register = true} class="w-full1">Register</Button>
+			<A size="xs" outline color="dark" on:click={() => register = true} class="ml-2 font-small">Register</A>
 
 			{/if}
 		</div>

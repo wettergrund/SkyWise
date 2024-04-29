@@ -2,7 +2,8 @@
 	import { onMount } from 'svelte';
 	import { from, to } from '../../stores/store';
 	import { Button, Modal, Label, Input, Checkbox } from 'flowbite-svelte';
-
+  import { P, Heading } from 'flowbite-svelte';
+	import WxTimeline from '../../components/WxTimeline.svelte';
 	export let visible = false;
 
 	onMount(() => (visible = true));
@@ -33,16 +34,23 @@
 		console.log(name);
 	};
 </script>
+<div class="header">
+<Heading size="7xl">Search:</Heading>
+
 
 <div class="form-wrapper">
 	<div class="">
 		<form method="POST" action="?/get" class="m-2 flex flex-col gap-5 space-y-0">
 			<!-- // From -->
-			<Input name="from" placeholder="Departure" type="text" on:input={updateIcao} />
+      <div class="flex flex-row gap-5">
+
+
+			<Input size="lg" name="from" placeholder="Departure" type="text" on:input={updateIcao} />
 
 			<!-- // To -->
-			<Input name="to" placeholder="Arrival" type="text" on:input={updateIcao} />
-			<Button type="submit">Get weather</Button>
+			<Input size="lg" name="to" placeholder="Arrival" type="text" on:input={updateIcao} />
+      </div>
+			<Button disabled={$from.length === 0} type="submit">Get weather</Button>
 		</form>
 	</div>
 
@@ -53,31 +61,32 @@
 	{/if}
 
 	{#if form?.success}
-		{form?.from.metar.rules}
+		<WxTimeline metar={form?.from.metar}/>
 		<br />
-		{form?.from.taf.rawTAF}
+		<!-- {form?.from?.taf?.rawTAF ?? ""} -->
 
 		<br />
+		<WxTimeline metar={form?.to?.metar}/>
 
-		{form?.to?.metar.rules}
 		<br />
-		{form?.to?.taf.rawTAF}
+		<!-- {form?.to?.taf.rawTAF ?? ""} -->
 	{/if}
 </div>
+</div>
+
 
 <style>
-	.Input {
-		
-        text-transform: uppercase;
-	}
-	.form > form {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		padding: 1rem;
-	}
-	form > input {
-		border: 1px solid #a0a0a0;
-		border-radius: 5px;
-	}
+ .header{
+   position: relative;
+   background-color: #EBF0FF;
+   height: 30vh;
+ }
+ .form-wrapper{
+   position: absolute;
+   background: #fff;
+   bottom: 0;
+   padding: 1rem 1rem;
+   border-radius: 1.5rem 1.5rem 0 0;
+   width: 100%;
+ }
 </style>
