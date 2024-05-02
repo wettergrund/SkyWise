@@ -3,12 +3,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using Microsoft.Extensions.Caching.Distributed;
+using NetTopologySuite.Geometries;
+using StackExchange.Redis;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WeatherController(IWeatherDataHandler weatherDataHandler) : ControllerBase
+    public class WeatherController(IWeatherDataHandler weatherDataHandler, IDistributedCache cache) : ControllerBase
     {
 
         [HttpGet]
@@ -32,17 +35,6 @@ namespace API.Controllers
 
             return Ok(result);
         }
-
-        //[HttpGet("/manual/addtaf")]
-
-        //public async Task<IActionResult> AddTaf()
-        //{
-
-        //    var result = await weatherDataHandler.AddTaf();
-
-        //    return Ok(result);
-        //}
-
         [HttpGet("/manual/metartest")]
 
         public async Task<IActionResult> Lab()
@@ -63,5 +55,26 @@ namespace API.Controllers
 
             return Ok();
         }
+        
+        [HttpGet("/byline")]
+        public async Task<IActionResult> GetByLine(string from, string to)
+        {
+            var result = await weatherDataHandler.GetWxByLine(from, to);
+            return Ok(result);
+        }
+        
+        [HttpGet("/redisTest")]
+        public async Task<IActionResult> TestRedis()
+        {
+            
+            cache.SetString("test","value");
+            
+      
+            var test = cache.GetString("test");
+            
+            
+            return Ok(test);
+        }
+        
     }
 }

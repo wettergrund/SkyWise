@@ -1,4 +1,5 @@
 ﻿using API.Models;
+using API.Models.DB;
 
 namespace API.Services
 {
@@ -7,12 +8,13 @@ namespace API.Services
 
         public Task<AirportWeather> GetWeatherByICAO(string ICAO);
 
-        public Task<bool> AddTaf();
 
 
         public Task<bool> FetchMetar();
         public Task<bool> FetchTaf();
 
+        public Task<List<WeatherResponse>> GetWxByLine(string from, string to);
+        
 
 
 
