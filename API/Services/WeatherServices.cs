@@ -6,6 +6,7 @@ using NetTopologySuite.Geometries;
 using System.IO.Compression;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore.Query;
 
 
 namespace API.Services
@@ -26,6 +27,8 @@ namespace API.Services
         }
 
 
+        
+        
         public async Task<AirportWeather> GetWeatherByICAO(string ICAO)
         {
 
@@ -227,18 +230,26 @@ namespace API.Services
 
             }) { SRID = 4326 };
 
-            var airportList = await _apRepo.GetAirportsByLine(newLineString);
+            var airportList = await _apRepo.GetAirportsByLine(newLineString); // FIX: Only return ICAO code?
 
             var weatherList = new List<WeatherResponse>();
 
             foreach (var airport in airportList)
             {
-                var newWeatherItem = await GetWeatherByICAO(airport.ICAO);
+                var icaoCode = airport.ICAO;
+                
+                
+                var newWeatherItemTask = await _repo.GetAirportWeatherAsync(icaoCode);
+                
                 var newResponse = new WeatherResponse()
                 {
                     AirportInfo = new AirportResponse(airport),
-                    Weather = newWeatherItem
+                    Weather = newWeatherItemTask
+                    
                 };
+                
+                
+                
                 
                 
                 weatherList.Add(newResponse);

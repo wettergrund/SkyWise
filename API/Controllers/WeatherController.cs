@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using API.Models;
+using API.Models.DB;
 using Microsoft.Extensions.Caching.Distributed;
 using NetTopologySuite.Geometries;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 
 namespace API.Controllers
@@ -27,13 +30,17 @@ namespace API.Controllers
              * Update cache
              * Return weather data
              */
+            
+            
+
+           
             var result = await weatherDataHandler.GetWeatherByICAO(ICAO);
 
-
-
-
-
+            
             return Ok(result);
+        
+
+
         }
         [HttpGet("/manual/metartest")]
 
@@ -70,7 +77,7 @@ namespace API.Controllers
             cache.SetString("test","value");
             
       
-            var test = cache.GetString("test");
+            var test = cache.GetString("ESSP");
             
             
             return Ok(test);
