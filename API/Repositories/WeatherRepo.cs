@@ -76,6 +76,7 @@ namespace API.Repositories
 
         private async Task AddToRedis(AirportWeather airportWeather, string icao)
         {
+        
             DistributedCacheEntryOptions options = new();
             options.SetAbsoluteExpiration(new TimeSpan(10,0,0,0));
             

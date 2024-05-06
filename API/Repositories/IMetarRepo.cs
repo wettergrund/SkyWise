@@ -1,9 +1,10 @@
 ﻿using API.Models.DB;
+using API.Models.DTO;
 
 namespace API.Repositories
 {
     public interface IMetarRepo : IRepoBase<METAR>
     {
-        Task<METAR> GetMetarAsync(string icao);
+        Task<MetarResponse> GetMetarAsync(string icao);
     }
 }

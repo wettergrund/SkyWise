@@ -1,9 +1,10 @@
 ﻿using API.Models.DB;
+using API.Models.DTO;
 
 namespace API.Repositories
 {
     public interface ITafRepo : IRepoBase<TAF>
     {
-        Task<TAF> GetTafAsync(string icao);
+        Task<TafResponse?> GetTafAsync(string icao);
     }
 }

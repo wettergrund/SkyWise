@@ -1,11 +1,12 @@
 using API.Models.DB;
+using API.Models.DTO;
 using NetTopologySuite.Geometries;
 
 namespace API.Models;
 
 public class AirportResponse
 {
-    public AirportResponse(Airport dbProperties)
+    public AirportResponse(AirportListResponse dbProperties)
     {
         ICAO = dbProperties.ICAO;
         Latitude = dbProperties.Location.Y;

@@ -1,17 +1,27 @@
 ﻿using API.Data;
 using API.Models.DB;
+using API.Models.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Repositories
 {
     public class MetarRepo : RepoBase<METAR>, IMetarRepo
     {
         public MetarRepo(SWContext context) : base(context) { }
-        public async Task<METAR> GetMetarAsync(string icao)
+        public async Task<MetarResponse> GetMetarAsync(string icao)
         {
-            return _db.METAR
+            var dbResult = await _db.METAR
                 .Where(m => m.ICAO == icao)
                 .OrderByDescending(t => t.ValidFrom)
-                .FirstOrDefault();
+                .IgnoreAutoIncludes()
+                .FirstOrDefaultAsync();
+
+            var newMetarResponse = new MetarResponse(dbResult);
+
+            return newMetarResponse;
+
+
+
         }
     }
 }

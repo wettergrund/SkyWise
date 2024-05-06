@@ -1,10 +1,11 @@
 ﻿using API.Models.DB;
+using API.Models.DTO;
 
 namespace API.Models
 {
     public class AirportWeather
     {
-        public METAR Metar { get; set; }
-        public TAF Taf { get; set; }
+        public MetarResponse Metar { get; set; }
+        public TafResponse? Taf { get; set; }
     }
 }

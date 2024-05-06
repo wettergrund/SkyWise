@@ -1,5 +1,7 @@
 ﻿using API.Data;
 using API.Models.DB;
+using API.Models.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Repositories
 {
@@ -7,10 +9,18 @@ namespace API.Repositories
     {
         public TafRepo(SWContext context) : base(context) { }
 
-        public async Task<TAF> GetTafAsync(string icao)
+        public async Task<TafResponse?> GetTafAsync(string icao)
         {
-            var result = _db.TAF.Where(m => m.ICAO == icao).FirstOrDefault();
-            return result;
+            var dbResult = await _db.TAF.Where(m => m.ICAO == icao).FirstOrDefaultAsync();
+
+            if (dbResult is null)
+            {
+                return null;
+            }
+
+            var newTafResponse = new TafResponse(dbResult);
+            
+            return newTafResponse;
 
         }
     }

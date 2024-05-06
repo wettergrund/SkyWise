@@ -215,11 +215,6 @@ namespace API.Services
         public async Task<List<WeatherResponse>> GetWxByLine(string from, string to)
         {
        
-            /*
-             * 1: Get coordinates for FROM
-             * 2: Get coordinates from TO
-             * 3: Get all airports that is within X from the line
-             */
             var fromAirport = await _apRepo.GetAirportByICAOAsync(from);
             var toAirport = await _apRepo.GetAirportByICAOAsync(to);
 

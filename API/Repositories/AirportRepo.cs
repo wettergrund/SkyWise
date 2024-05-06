@@ -1,5 +1,6 @@
 using API.Data;
 using API.Models.DB;
+using API.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 
@@ -33,13 +34,28 @@ public class AirportRepo : RepoBase<Airport>, IAirportRepo
         return model;
     }
 
-    public async Task<List<Airport>> GetAirportsByLine(LineString line)
+    public async Task<List<AirportListResponse>> GetAirportsByLine(LineString line)
     {
-        var result = _db.Airport
+        var airportList = _db.Airport
             .Where(ap => ap.Location.IsWithinDistance(line, 80000))
             .OrderBy(r => r.Location.Distance(line.StartPoint))
             .ToList();
 
-        return result;
+        var responseList = new List<AirportListResponse>();
+
+        foreach (Airport airport in airportList)
+        {
+            var newAirportResponse = new AirportListResponse()
+            {
+                ICAO = airport.ICAO,
+                Location = airport.Location
+            };
+            responseList.Add(newAirportResponse);
+        }
+        
+        
+        
+
+        return responseList;
     }
 }
