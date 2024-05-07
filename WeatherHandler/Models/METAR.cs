@@ -18,7 +18,7 @@ public class METAR
     public int? WindGustKt { get; set; }
     public int VisibilityM { get; set; }
     public double QNH { get; set; }
-    public int VerticalVisibilityFt { get; set; }
+    public int? VerticalVisibilityFt { get; set; }
     public string WxString { get; set; }
     public bool Auto { get; set; }
 

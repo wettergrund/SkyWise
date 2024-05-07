@@ -39,6 +39,11 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
 
                 string icaoCode = csvColumns[1];
 
+                if (!icaoCode.StartsWith("ES"))
+                {
+                    continue;
+                }
+
                 Airport? getAirport = await GetAirportFromDb(icaoCode);
 
                 if (getAirport is null)
@@ -53,12 +58,7 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
                     };
                     await apRepo.Add(newAirport);
 
-                    getAirport = newAirport;
-                }
-
-                if (!icaoCode.StartsWith("ES"))
-                {
-                    continue;
+                    getAirport = await AddAirport(icaoCode, latitude, longitude);
                 }
 
                 var newMetar = new METAR();
@@ -72,12 +72,73 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
             await metarRepo.SaveChanges();
         }
 
-        throw new NotImplementedException();
+        return true;
     }
 
-    public Task<bool> FetchTaf()
+    public async Task<bool> FetchTaf()
     {
-        throw new NotImplementedException();
+        string sourceFile = _awUrl + "tafs.cache.csv.gz";
+        using (HttpClient client = new HttpClient())
+        await using (Stream stream = await client.GetStreamAsync(sourceFile))
+        await using (GZipStream zip = new GZipStream(stream, CompressionMode.Decompress))
+        using (StreamReader reader = new StreamReader(zip))
+        {
+            int startLine = 6;
+
+            for (int i = 0; i < startLine; i++)
+            {
+                if (!reader.EndOfStream)
+                {
+                    await reader.ReadLineAsync();
+                }
+            }
+            while (!reader.EndOfStream)
+            {
+                string? csvLine = await reader.ReadLineAsync();
+
+                string[] csvColumns = csvLine.Split(',');
+
+                string raw = csvColumns[0];
+                bool isCavok = raw.Contains("CAVOK");
+                string icaoCode = csvColumns[1];
+                string latitude = csvColumns[7];
+                string longitude = csvColumns[8];
+
+                if (!icaoCode.StartsWith("ES"))
+                {
+                    continue;
+                }
+
+
+
+                var getAirport = await apRepo.GetAirportByICAOAsync(icaoCode);
+
+                if (getAirport is null)
+                {
+                    getAirport = await AddAirport(icaoCode, latitude, longitude);
+                }
+
+
+                var newTAF = new TAF()
+                {
+                    RawTAF = raw,
+                    ICAO = icaoCode,
+                    IssueTime = DateTime.Parse(csvColumns[2]).ToUniversalTime(),
+                    ValidFrom = DateTime.Parse(csvColumns[4]).ToUniversalTime(),
+                    ValidTo = DateTime.Parse(csvColumns[5]).ToUniversalTime(),
+                    Remarks = csvColumns[6],
+                    Forcasts = ParseForcastsFromCsv(csvColumns),
+                    Airport = getAirport,
+                };
+
+                await tafRepo.Add(newTAF);
+            }
+
+            await tafRepo.SaveChanges();
+
+        }
+
+        return true;
     }
 
 
@@ -116,7 +177,9 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
             ?? (!string.IsNullOrEmpty(csvColumns[12])
                     ? double.Parse(csvColumns[12])
                     : -1);
-        metarObj.VerticalVisibilityFt = -1; // Todo: Remove for METAR?
+        metarObj.VerticalVisibilityFt = string.IsNullOrEmpty(csvColumns[41])
+            ? null
+            : int.Parse(csvColumns[41]);
         metarObj.WxString = csvColumns[21];
         metarObj.CloudLayers = ParseCloudInfo(csvColumns);
         metarObj.Rules = csvColumns[30];
@@ -130,7 +193,13 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
     {
         var forcastList = new List<Forcast>();
 
-        for (int i = 10; i <= 269; i += 37)
+        int forecastStart = 10;
+        int lastForecastStart = 269;
+        int columnsInEachForecast = 37;
+
+        for (int i = forecastStart;
+                i <= lastForecastStart;
+                i += columnsInEachForecast)
         {
             if (string.IsNullOrEmpty(csvColumn[i]))
             {
@@ -165,8 +234,10 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
         model.WindGustKt = string.IsNullOrEmpty(csvColumn[i + 7])
             ? 0
             : int.Parse(csvColumn[i + 7]);
-        model.VisibilityM = 1337; //FIX
-        model.VerticalVisibilityFt = 1337; // FIX
+        model.VisibilityM = ConvertMileToMeter(csvColumn[i + 11]) ?? -1; //FIX
+        model.VerticalVisibilityFt = string.IsNullOrEmpty(csvColumn[i + 14])
+            ? null
+            : int.Parse(csvColumn[i + 14]);
         model.WxString = csvColumn[i + 14];
         model.CloudLayers = ParseCloudInfo(csvColumn, i + 16, i + 22, 3);
         model.Probability = ParseProb(csvColumn[i + 4]);
@@ -260,6 +331,43 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
 
     }
 
+    private int? ConvertMileToMeter(string mile)
+    {
 
+        if (string.IsNullOrEmpty(mile)) return null;
+        string pattern = @"\+";
+
+        string removedPlus = Regex.Replace(mile, pattern, "");
+
+        double mileDouble;
+
+        if (!double.TryParse(removedPlus, out mileDouble))
+        {
+            throw new Exception("Unable to convert string " + removedPlus + " to double");
+        }
+
+        double milesToMeters = mileDouble * 1609.34;
+
+        double movedDecimal = milesToMeters / 1000;
+
+        double roundedDecimal = Math.Round(movedDecimal, 0);
+
+        int result = (int)roundedDecimal * 1000;
+
+        return result;
+    }
+    private async Task<Airport> AddAirport(string ICAO, string latitude, string longitude)
+    {
+        var newAirport = new Airport()
+        {
+            ICAO = ICAO,
+            Location = GeneratePointFromString(latitude, longitude)
+        };
+
+        await apRepo.Add(newAirport);
+        await apRepo.SaveChanges();
+
+        return newAirport;
+    }
 
 }

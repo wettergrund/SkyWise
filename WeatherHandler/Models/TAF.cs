@@ -33,7 +33,7 @@ public class Forcast
     public int WindSpeedKt { get; set; }
     public int WindGustKt { get; set; }
     public int VisibilityM { get; set; }
-    public int VerticalVisibilityFt { get; set; }
+    public int? VerticalVisibilityFt { get; set; }
     public string WxString { get; set; }
     public List<CloudModel> CloudLayers { get; set; }
 }
