@@ -27,11 +27,8 @@ namespace API.Services
         }
 
 
-        
-        
         public async Task<AirportWeather> GetWeatherByICAO(string ICAO)
         {
-
             var result = await _repo.GetAirportWeatherAsync(ICAO);
 
 
@@ -126,7 +123,9 @@ namespace API.Services
                     newMetar.CloudLayers = ParseCloudInfo(csvColumns);
                     newMetar.Rules = csvColumns[30];
                     newMetar.Airport = getAirport;
-                     
+                    newMetar.Auto = bool.Parse(csvColumns[14]);
+                
+
 
                     _metarRepo.Add(newMetar);
                 }
@@ -214,15 +213,13 @@ namespace API.Services
 
         public async Task<List<WeatherResponse>> GetWxByLine(string from, string to)
         {
-       
             var fromAirport = await _apRepo.GetAirportByICAOAsync(from);
             var toAirport = await _apRepo.GetAirportByICAOAsync(to);
 
-            var newLineString = new LineString(new []
+            var newLineString = new LineString(new[]
             {
                 new Coordinate(fromAirport.Location.X, fromAirport.Location.Y),
                 new Coordinate(toAirport.Location.X, toAirport.Location.Y)
-
             }) { SRID = 4326 };
 
             var airportList = await _apRepo.GetAirportsByLine(newLineString); // FIX: Only return ICAO code?
@@ -232,25 +229,20 @@ namespace API.Services
             foreach (var airport in airportList)
             {
                 var icaoCode = airport.ICAO;
-                
-                
+
+
                 var newWeatherItemTask = await _repo.GetAirportWeatherAsync(icaoCode);
-                
+
                 var newResponse = new WeatherResponse()
                 {
                     AirportInfo = new AirportResponse(airport),
                     Weather = newWeatherItemTask
-                    
                 };
-                
-                
-                
-                
-                
+
+
                 weatherList.Add(newResponse);
-                
             }
-            
+
             return weatherList;
         }
 
@@ -328,39 +320,38 @@ namespace API.Services
                 {
                     break;
                 }
-                
+
                 var newForecast = new Forcast();
-                
+
                 MapForecast(newForecast, csvColumn, i);
 
                 forcastList.Add(newForecast);
             }
-            
+
             return forcastList;
         }
 
 
         private void MapForecast(Forcast model, string[] csvColumn, int i)
         {
-                var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
-                model.ForcastFromTime = DateTime.Parse(csvColumn[i]).ToUniversalTime();
-                model.ForcastToTime = DateTime.Parse(csvColumn[i + 1]).ToUniversalTime();
-                model.ChangeIndicator = csvColumn[i + 2];
-                model.BecomingTime = csvColumn[i + 3].IsNullOrEmpty()
-                    ? DateTime.MinValue
-                    : unixEpoch.AddSeconds(double.Parse(csvColumn[i + 3])).ToUniversalTime(); //FIX?
-                model.WindDirectionDeg = csvColumn[i + 5] == "VRB" || csvColumn[i + 5].IsNullOrEmpty()
-                    ? 0
-                    : int.Parse(csvColumn[i + 5]);
-                model.WindSpeedKt = csvColumn[i + 6].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 6]);
-                model.WindGustKt = csvColumn[i + 7].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 7]);
-                model.VisibilityM = 1337; //FIX
-                model.VerticalVisibilityFt = 1337; // FIX
-                model.WxString = csvColumn[i + 14];
-                model.CloudLayers = ParseCloudInfo(csvColumn, i + 16, i + 22, 3);
-                model.Probability = ParseProb(csvColumn[i + 4]);
-
+            model.ForcastFromTime = DateTime.Parse(csvColumn[i]).ToUniversalTime();
+            model.ForcastToTime = DateTime.Parse(csvColumn[i + 1]).ToUniversalTime();
+            model.ChangeIndicator = csvColumn[i + 2];
+            model.BecomingTime = csvColumn[i + 3].IsNullOrEmpty()
+                ? DateTime.MinValue
+                : unixEpoch.AddSeconds(double.Parse(csvColumn[i + 3])).ToUniversalTime(); //FIX?
+            model.WindDirectionDeg = csvColumn[i + 5] == "VRB" || csvColumn[i + 5].IsNullOrEmpty()
+                ? 0
+                : int.Parse(csvColumn[i + 5]);
+            model.WindSpeedKt = csvColumn[i + 6].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 6]);
+            model.WindGustKt = csvColumn[i + 7].IsNullOrEmpty() ? 0 : int.Parse(csvColumn[i + 7]);
+            model.VisibilityM = 1337; //FIX
+            model.VerticalVisibilityFt = 1337; // FIX
+            model.WxString = csvColumn[i + 14];
+            model.CloudLayers = ParseCloudInfo(csvColumn, i + 16, i + 22, 3);
+            model.Probability = ParseProb(csvColumn[i + 4]);
         }
 
         private static Probability ParseProb(string probSting)
@@ -368,7 +359,6 @@ namespace API.Services
             if (probSting.IsNullOrEmpty()) return Probability.Empty;
 
             return probSting == "40" ? Probability.P40 : Probability.P30;
-
         }
     }
 }

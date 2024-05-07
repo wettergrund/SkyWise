@@ -42,7 +42,7 @@ namespace API.Controllers
 
 
         }
-        [HttpGet("/manual/metartest")]
+        [HttpGet("/manual/metartest")] //Function?
 
         public async Task<IActionResult> Lab()
         {
@@ -53,7 +53,7 @@ namespace API.Controllers
         }
 
 
-        [HttpGet("/manual/taftest")]
+        [HttpGet("/manual/taftest")] //Function?
 
         public async Task<IActionResult> TafLab()
         {
