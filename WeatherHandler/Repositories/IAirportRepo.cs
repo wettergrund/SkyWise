@@ -4,7 +4,7 @@ namespace WeatherHandler.Repositories;
 
 public interface IAirportRepo : IRepoBase<Airport>
 {
-    Task<Airport> GetAirportByICAOAsync(string icao);
+    Task<Airport?> GetAirportByICAOAsync(string icao);
     
 
 }

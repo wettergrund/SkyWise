@@ -51,12 +51,8 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
                     string latitude = csvColumns[3];
                     string longitude = csvColumns[4];
 
-                    var newAirport = new Airport()
-                    {
-                        ICAO = icaoCode,
-                        Location = GeneratePointFromString(latitude, longitude)
-                    };
-                    await apRepo.Add(newAirport);
+                    Console.WriteLine(icaoCode);
+                   
 
                     getAirport = await AddAirport(icaoCode, latitude, longitude);
                 }
@@ -184,7 +180,7 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
         metarObj.CloudLayers = ParseCloudInfo(csvColumns);
         metarObj.Rules = csvColumns[30];
         metarObj.Airport = airport;
-        metarObj.Auto = bool.Parse(csvColumns[14]);
+        metarObj.Auto = !string.IsNullOrEmpty(csvColumns[14]);
 
 
     }
@@ -235,9 +231,9 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
             ? 0
             : int.Parse(csvColumn[i + 7]);
         model.VisibilityM = ConvertMileToMeter(csvColumn[i + 11]) ?? -1; //FIX
-        model.VerticalVisibilityFt = string.IsNullOrEmpty(csvColumn[i + 14])
+        model.VerticalVisibilityFt = string.IsNullOrEmpty(csvColumn[i + 13])
             ? null
-            : int.Parse(csvColumn[i + 14]);
+            : int.Parse(csvColumn[i + 13]);
         model.WxString = csvColumn[i + 14];
         model.CloudLayers = ParseCloudInfo(csvColumn, i + 16, i + 22, 3);
         model.Probability = ParseProb(csvColumn[i + 4]);
