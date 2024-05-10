@@ -1,6 +1,6 @@
 
 
-name: Deploy Parkingapp API DEV
+name: Deploy skywise API
 
 env:
   AZURE_WEBAPP_NAME: SkyWiseApi    # set this to the name of your Azure Web App
@@ -34,10 +34,10 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
-        run: dotnet build ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ParkingAPI.csproj --configuration Release
+        run: dotnet build ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/API.csproj --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ParkingAPI.csproj -c Release -o ${{ env.DOTNET_ROOT }}/myapp
+        run: dotnet publish ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/API.csproj -c Release -o ${{ env.DOTNET_ROOT }}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
