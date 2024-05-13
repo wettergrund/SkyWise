@@ -14,8 +14,10 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WeatherController(IWeatherDataHandler weatherDataHandler, IDistributedCache cache, IConfiguration config, ILogger log) : ControllerBase
+    public class WeatherController(IWeatherDataHandler weatherDataHandler, IDistributedCache cache, IConfiguration config, ILoggerFactory log) : ControllerBase
     {
+
+        private ILogger _log = log.CreateLogger<WeatherController>();
 
         [HttpGet]
         public async Task<IActionResult> GetCurrentWeather(string ICAO)
@@ -75,7 +77,7 @@ namespace API.Controllers
         {
             var redis = config.GetConnectionString("Redis") ?? "noConnectionString";
             
-            log.LogInformation("Redis connection string: " + redis);
+            _log.LogInformation("Redis connection string: " + redis);
 
             try
             {
@@ -84,7 +86,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                log.LogError(ex, "Redis error");
+                _log.LogError(ex, "Redis error");
             }
 
 
