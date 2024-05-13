@@ -47,6 +47,8 @@ namespace API.Repositories
         private async Task<AirportWeather?> GetFromRedisAsync(string icao)
         {
             string ICAO = icao.ToUpper();
+            
+            
 
             var cacheResult = _cache.GetString(ICAO);
 

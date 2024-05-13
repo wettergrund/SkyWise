@@ -14,7 +14,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WeatherController(IWeatherDataHandler weatherDataHandler, IDistributedCache cache) : ControllerBase
+    public class WeatherController(IWeatherDataHandler weatherDataHandler, IDistributedCache cache, IConfiguration config, ILogger log) : ControllerBase
     {
 
         [HttpGet]
@@ -73,14 +73,26 @@ namespace API.Controllers
         [HttpGet("/redisTest")]
         public async Task<IActionResult> TestRedis()
         {
+            var redis = config.GetConnectionString("Redis") ?? "noConnectionString";
             
-            cache.SetString("test","value");
+            log.LogInformation("Redis connection string: " + redis);
+
+            try
+            {
+                cache.SetString("test", "value");
+
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex, "Redis error");
+            }
+
+
+
+            cache.SetString("test", "Value");
             
-      
-            var test = cache.GetString("ESSP");
             
-            
-            return Ok(test);
+            return Ok("Success?");
         }
         
     }
