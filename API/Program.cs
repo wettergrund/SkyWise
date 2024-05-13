@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.IdentityModel.Protocols.Configuration;
 using StackExchange.Redis;
 
@@ -37,10 +38,11 @@ namespace API
             var log = new LoggerFactory().CreateLogger<Type>();
             
             
-            string redisConnetionSting = builder.Configuration.GetConnectionString("Redis") ?? builder.Configuration["Redis"] ?? throw new InvalidConfigurationException("Unable to find redis conncetion string");
+            
+            string redisConnetionSting = builder.Configuration.GetConnectionString("RedisDefaultConnection") ?? builder.Configuration["RedisDefaultConnection"] ?? throw new InvalidConfigurationException("Unable to find redis conncetion string");
             
             log.LogInformation("Redis init conn string: " + redisConnetionSting);
-            
+
             builder.Services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = redisConnetionSting;

@@ -75,7 +75,7 @@ namespace API.Controllers
         [HttpGet("/redisTest")]
         public async Task<IActionResult> TestRedis()
         {
-            var redis = config.GetConnectionString("Redis") ?? "noConnectionString";
+            var redis = config.GetConnectionString("RedisDefaultConnection") ?? "noConnectionString";
             
             _log.LogInformation("Redis connection string: " + redis);
 
