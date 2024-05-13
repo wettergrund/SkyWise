@@ -33,9 +33,11 @@ namespace API
             // DB context 
             string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+            string redisConnetionSting = builder.Configuration.GetConnectionString("Redis") ??
+                                         throw new Exception("Redis connection string error");
             builder.Services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = builder.Configuration.GetConnectionString("Redis");
+                options.Configuration = redisConnetionSting;
             });
             
             builder.Services.AddDbContext<SWContext>
