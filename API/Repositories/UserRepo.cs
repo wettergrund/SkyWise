@@ -10,7 +10,7 @@ namespace API.Repositories
         {
         }
 
-        public async Task<User> GetByUidAsync(string uid)
+        public async Task<User?> GetByUidAsync(string uid)
         {
             User? userFromDb = await _db.User
                 .Where(u => u.ProviderId == uid)

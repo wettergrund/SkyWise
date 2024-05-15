@@ -61,6 +61,7 @@ namespace API
             builder.Services.AddScoped<IAirportRepo, AirportRepo>();
 
             builder.Services.AddScoped<IUserRepo, UserRepo>();
+            builder.Services.AddScoped<IHistoryRepo, HistoryRepo>();
             builder.Services.AddScoped<IRepoBase<UserAirportFavorite>, RepoBase<UserAirportFavorite>>();
             builder.Services.AddScoped<IRepoBase<UserAirportHistory>, RepoBase<UserAirportHistory>>();
 

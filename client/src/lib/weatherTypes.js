@@ -60,5 +60,12 @@
  */
 
 
+/**
+ * @typedef {Object} AirportResponse
+ * @property {WeatherData} weather - The METAR information.
+
+ */
+
+
 
 exports.unused = {};
