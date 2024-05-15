@@ -25,7 +25,7 @@ public class Metar
     }
     
     [Function("Taf")]
-         public async Task RunTaf([TimerTrigger("30 0,6,12,18 * * * *")] TimerInfo myTimer)
+         public async Task RunTaf([TimerTrigger("30 0 0,6,12,18 * * *")] TimerInfo myTimer)
          {
              var result = await _wxServices.FetchTaf();
              
