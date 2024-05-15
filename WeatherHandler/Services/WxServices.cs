@@ -5,7 +5,7 @@ using WeatherHandler.Repositories;
 using System.Text.RegularExpressions;
 namespace WeatherHandler.Services;
 
-public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBase<TAF> tafRepo) : IWxServices
+public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBase<TAF> tafRepo, IRedisHandler redisRepo) : IWxServices
 {
     private string _awUrl = "https://aviationweather.gov/data/cache/";
 
@@ -36,7 +36,6 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
                     throw new Exception("Invalid CSV");
                 }
                 string[] csvColumns = csvLine.Split(',');
-
                 string icaoCode = csvColumns[1];
 
                 if (!icaoCode.StartsWith("ES"))
@@ -61,6 +60,7 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
 
                 MapCsvToMetar(newMetar, getAirport, csvColumns);
 
+                bool test = await redisRepo.UpdateRedis(newMetar);
                 await metarRepo.Add(newMetar);
 
             }

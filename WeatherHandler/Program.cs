@@ -1,6 +1,9 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Protocols.Configuration;
+using Newtonsoft.Json.Linq;
 using WeatherHandler.Data;
 using WeatherHandler.Models;
 using WeatherHandler.Repositories;
@@ -22,7 +25,13 @@ var host = new HostBuilder()
         {
             Console.WriteLine("Connection string: " + connectionString);
         }
-        
+
+        string redisConnection = config["RedisConnection"] ?? throw new InvalidConfigurationException("Redis connection string missing");
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+        });
         
         services.AddDbContext<WxDbContext>(options =>
                 options.UseSqlServer(connectionString),
@@ -33,17 +42,22 @@ var host = new HostBuilder()
         services.AddScoped<IRepoBase<TAF>, RepoBase<TAF>>();
         services.AddScoped<IAirportRepo, AirportRepo>();
         services.AddScoped<IMetarRepo, MetarRepo>();
+        services.AddScoped<IRedisHandler, RedisHandler>();
   
         
         services.AddScoped<IWxServices, WxServices>();
-        
-        
-        
 
 
 
-        
-        
+
+
+        services.Configure<JsonSerializerOptions>(settings =>
+        {
+            settings.PropertyNameCaseInsensitive = true;
+        });
+
+
+
 
     })
     .Build();
