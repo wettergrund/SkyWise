@@ -19,28 +19,14 @@ public class RedisHandler(IDistributedCache redis) : IRedisHandler
 
         string icao = metar.ICAO.ToUpper();
         
-        var getMetar = await redis.GetStringAsync(metar.ICAO);
 
-        if (string.IsNullOrEmpty(getMetar)) return false;
-
-        var weatherObject = new AirportWeather();
-
-        weatherObject = JsonConvert.DeserializeObject<AirportWeather>(getMetar, settings: new JsonSerializerSettings()
-                                                                                              {
-                                                      
-                                                                                                  ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                                                                                                  
-                                                                              
-                                                                                              });
+        var weatherObject = await GetWeather(icao);
+        if (weatherObject is null) return false;
 
         var updatedMetar = new MetarResponse(metar);
 
         weatherObject.Metar = updatedMetar;
 
-        DistributedCacheEntryOptions options = new();
-                     options.SetAbsoluteExpiration(new TimeSpan(10,0,0,0));
-                     
-        await redis.GetStringAsync(icao);
         
             await redis.SetStringAsync(icao.ToUpper(),JsonConvert.SerializeObject(weatherObject,settings: new JsonSerializerSettings()
             {
@@ -49,5 +35,59 @@ public class RedisHandler(IDistributedCache redis) : IRedisHandler
             }));
 
         return true;
+    }
+
+    public async Task<bool> UpdateRedis(TAF taf)
+    {
+        string icao = taf.ICAO.ToUpper();
+
+        var weatherObject = await GetWeather(icao);
+
+        if (weatherObject is null) return false;
+        var updatedTaf = new TafResponse(taf);
+
+        weatherObject.Taf = updatedTaf;
+        
+            await redis.SetStringAsync(icao.ToUpper(),JsonConvert.SerializeObject(weatherObject,settings: new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                ContractResolver =  new CamelCasePropertyNamesContractResolver()
+            }));
+            
+            
+            return true;
+
+    }
+
+    private async Task<AirportWeather?> GetWeather(string icao)
+    {
+        
+        var weather = await redis.GetStringAsync(icao);
+
+        if (string.IsNullOrEmpty(weather)) return null;
+        
+        
+        var weatherObject = new AirportWeather();
+
+        try
+        {
+
+            weatherObject = JsonConvert.DeserializeObject<AirportWeather>(weather,
+                settings: new JsonSerializerSettings()
+                {
+
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+
+
+                });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return null;
+        }
+
+        return weatherObject;
+
     }
 }

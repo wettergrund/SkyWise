@@ -127,6 +127,7 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
                     Airport = getAirport,
                 };
 
+                bool redis = await redisRepo.UpdateRedis(newTAF);
                 await tafRepo.Add(newTAF);
             }
 
@@ -151,7 +152,7 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
             ? 0
             : double.Parse(csvColumns[6]);
 
-        double? qnh = TryExtractQnh(csvColumns[11]);
+        double? qnh = TryExtractQnh(rawMetar);
 
 
         metarObj.RawMetar = rawMetar;
@@ -317,11 +318,15 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
         Regex qnhRegex = new Regex(@"Q(\d{4})");
 
         Match qnhResult = qnhRegex.Match(rawMetar);
-
         if (qnhResult.Success)
         {
-            return double.Parse(qnhResult.Value);
+            // Extract the captured digits (group 1) and convert to double
+            if (double.TryParse(qnhResult.Groups[1].Value, out double qnhValue))
+            {
+                return qnhValue;
+            }
         }
+ 
 
         return null;
 

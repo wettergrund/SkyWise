@@ -64,8 +64,8 @@
 		timeZoneName: 'short'
 	};
 
-	const zTime =  new Date(weather.metar?.validFrom + 'Z').toLocaleString('en-US', options);
-	const localTime = new Date(weather.metar?.validFrom + 'Z').toLocaleString('en-US', local);
+	const zTime =  new Date(weather.metar?.validFrom).toLocaleString('en-US', options);
+	const localTime = new Date(weather.metar?.validFrom).toLocaleString('en-US', local);
 	
 </script>
 {#if firstlast}

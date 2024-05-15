@@ -80,6 +80,7 @@
         </figure>
         <figure>
             <Heading tag="h6">Pressure</Heading>
+            <P>{metar.qnh}</P>
 
 
         </figure>
