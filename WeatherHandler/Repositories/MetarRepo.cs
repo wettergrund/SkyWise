@@ -19,8 +19,14 @@ public class MetarRepo(WxDbContext context) : RepoBase<METAR>(context), IMetarRe
 
         var toBeRemoved = _db.METAR.Where(m => m.ValidFrom < timeLimit).ToList();
 
+        var removeTaf = _db.TAF.Where(t => t.ValidTo < timeLimit).ToList();
+        
         _db.RemoveRange(toBeRemoved);
 
+        _db.RemoveRange(removeTaf);
+
+        _db.SaveChanges();
+        
         return true;
 
     }

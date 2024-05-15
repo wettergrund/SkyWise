@@ -5,7 +5,7 @@ using WeatherHandler.Repositories;
 using System.Text.RegularExpressions;
 namespace WeatherHandler.Services;
 
-public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBase<TAF> tafRepo, IRedisHandler redisRepo) : IWxServices
+public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF> tafRepo, IRedisHandler redisRepo) : IWxServices
 {
     private string _awUrl = "https://aviationweather.gov/data/cache/";
 
@@ -136,6 +136,11 @@ public class WxServices(IAirportRepo apRepo, IRepoBase<METAR> metarRepo, IRepoBa
         }
 
         return true;
+    }
+
+    public async Task<bool> CleanUp()
+    {
+        return metarRepo.RemoveOldMetars();
     }
 
 
