@@ -17,7 +17,7 @@ public class Metar
     }
 
     [Function("Metar")]
-    public async Task Run([TimerTrigger("10 50,20 0 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("10 50,20 * * * *")] TimerInfo myTimer)
     {
         var result = await _wxServices.FetchMetar();
         
