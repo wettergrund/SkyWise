@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using API.Models.DTO;
 
 namespace API.Services
 {
@@ -7,7 +8,10 @@ namespace API.Services
         Task<string?> ValidateUserAsync(ClaimsPrincipal claims);
         Task<bool> RemoveUserDataAsync(ClaimsPrincipal claims);
 
-        Task<bool> AddFavorite(string userId, string fromIcao, string? toIcao);
+        Task<bool> AddFavorite(FavHistModel model);
+        Task<PostDBResponse> AddHistory(FavHistModel model);
+        
+        
 
         //Task<bool> GetUserData(string uid);
 
