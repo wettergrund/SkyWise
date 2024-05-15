@@ -3,9 +3,11 @@ using NetTopologySuite.Geometries;
 using WeatherHandler.Models;
 using WeatherHandler.Repositories;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
+
 namespace WeatherHandler.Services;
 
-public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF> tafRepo, IRedisHandler redisRepo) : IWxServices
+public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF> tafRepo, IRedisHandler redisRepo, IConfiguration config) : IWxServices
 {
     private string _awUrl = "https://aviationweather.gov/data/cache/";
 
@@ -19,6 +21,7 @@ public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF
         using (StreamReader reader = new StreamReader(zip))
         {
             int startLine = 6;
+            string limit = config["limiter"] ?? "";
 
             for (int i = 0; i < startLine; i++)
             {
@@ -38,7 +41,7 @@ public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF
                 string[] csvColumns = csvLine.Split(',');
                 string icaoCode = csvColumns[1];
 
-                if (!icaoCode.StartsWith("ES"))
+                if (!icaoCode.StartsWith(limit))
                 {
                     continue;
                 }
