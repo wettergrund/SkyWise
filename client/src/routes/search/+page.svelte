@@ -79,7 +79,6 @@
 	
 	{:else if form.line == null && form.from?.metar != undefined}
 	
-	Single?
 	
 	<WxTimeline weather={form.from} firstlast/>
 	

@@ -16,27 +16,27 @@ public class Metar
         _wxServices = wxServices;
     }
 
-    // [Function("Metar")]
-    // public async Task Run([TimerTrigger("10 0,30 * * * *")] TimerInfo myTimer)
-    // {
-    //     var result = await _wxServices.FetchMetar();
-    //     
-    //     if(!result) _logger.LogError("Unable fetch metar"); 
-    // }
-    //
-    // [Function("Taf")]
-    //      public async Task RunTaf([TimerTrigger("30 0 0,6,12,18 * * *")] TimerInfo myTimer)
-    //      {
-    //          var result = await _wxServices.FetchTaf();
-    //          
-    //          if(!result) _logger.LogError("Unable fetch TAF"); 
-    //      }
-    //      
-    // [Function("CleanUp")]
-    //      public async Task RunCleanup([TimerTrigger("0 0 * * * *")] TimerInfo myTimer)
-    //      {
-    //          var result = await _wxServices.FetchTaf();
-    //          
-    //          if(!result) _logger.LogError("Unable fetch TAF"); 
-    //      }
+    [Function("Metar")]
+    public async Task Run([TimerTrigger("10 0,30 * * * *")] TimerInfo myTimer)
+    {
+        var result = await _wxServices.FetchMetar();
+        
+        if(!result) _logger.LogError("Unable fetch metar"); 
+    }
+    
+    [Function("Taf")]
+         public async Task RunTaf([TimerTrigger("30 0 0,6,12,18 * * *")] TimerInfo myTimer)
+         {
+             var result = await _wxServices.FetchTaf();
+             
+             if(!result) _logger.LogError("Unable fetch TAF"); 
+         }
+         
+    [Function("CleanUp")]
+         public async Task RunCleanup([TimerTrigger("0 0 * * * *")] TimerInfo myTimer)
+         {
+             var result = await _wxServices.FetchTaf();
+             
+             if(!result) _logger.LogError("Unable fetch TAF"); 
+         }
 }

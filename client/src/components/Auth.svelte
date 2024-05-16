@@ -47,7 +47,7 @@
 
 <Button size="sm"  on:click={() => (formModal = true)}><ArrowLeftToBracketOutline class="w-4 h-4 me-3" />Login</Button>
 
-<Modal bind:open={formModal} size="xs" autoclose={false} class="w-full" c>
+<Modal bind:open={formModal} size="xs" autoclose={false} class="w-full m-0 left-0" >
 
 <!-- <div class="container"> -->
 	<!-- <h1>{register ? 'Register' : 'Log in'}</h1> -->
