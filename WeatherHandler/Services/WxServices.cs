@@ -10,6 +10,7 @@ namespace WeatherHandler.Services;
 public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF> tafRepo, IRedisHandler redisRepo, IConfiguration config) : IWxServices
 {
     private string _awUrl = "https://aviationweather.gov/data/cache/";
+    private string limit = config["limiter"] ?? "";
 
     public async Task<bool> FetchMetar()
     {
@@ -21,7 +22,7 @@ public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF
         using (StreamReader reader = new StreamReader(zip))
         {
             int startLine = 6;
-            string limit = config["limiter"] ?? "";
+            
 
             for (int i = 0; i < startLine; i++)
             {
@@ -50,18 +51,41 @@ public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF
 
                 if (getAirport is null)
                 {
+                    
                     string latitude = csvColumns[3];
                     string longitude = csvColumns[4];
 
                     Console.WriteLine(icaoCode);
-                   
+                    Console.WriteLine(latitude + " " + longitude);
 
-                    getAirport = await AddAirport(icaoCode, latitude, longitude);
+
+                    if(latitude == "-99.99") continue;
+                    
+                    try
+                    {
+                        getAirport = await AddAirport(icaoCode, latitude, longitude);
+
+                    }
+                    catch
+                    {
+                        Console.WriteLine();
+                        continue;
+                    }
                 }
 
                 var newMetar = new METAR();
 
-                MapCsvToMetar(newMetar, getAirport, csvColumns);
+
+                try
+                {
+                    MapCsvToMetar(newMetar, getAirport, csvColumns);
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+
 
                 bool test = await redisRepo.UpdateRedis(newMetar);
                 await metarRepo.Add(newMetar);
@@ -103,7 +127,7 @@ public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF
                 string latitude = csvColumns[7];
                 string longitude = csvColumns[8];
 
-                if (!icaoCode.StartsWith("ES"))
+                if (!icaoCode.StartsWith(limit))
                 {
                     continue;
                 }
@@ -111,10 +135,24 @@ public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF
 
 
                 var getAirport = await apRepo.GetAirportByICAOAsync(icaoCode);
-
+                
+                
                 if (getAirport is null)
                 {
-                    getAirport = await AddAirport(icaoCode, latitude, longitude);
+
+
+                    if(latitude == "-99.99") continue;
+                    
+                    try
+                    {
+                        getAirport = await AddAirport(icaoCode, latitude, longitude);
+
+                    }
+                    catch
+                    {
+                        Console.WriteLine();
+                        continue;
+                    }
                 }
 
 
@@ -170,10 +208,10 @@ public class WxServices(IAirportRepo apRepo, IMetarRepo metarRepo, IRepoBase<TAF
              : DateTime.MinValue;
         metarObj.Temp = (int)Math.Round(temp);
         metarObj.DewPoint = (int)Math.Round(dewPoint);
-        metarObj.WindDirectionDeg = csvColumns[7] == "VRB"
+        metarObj.WindDirectionDeg = csvColumns[7] == "VRB" || string.IsNullOrEmpty(csvColumns[7])
             ? -1
             : Convert.ToInt32(csvColumns[7]);
-        metarObj.WindSpeedKt = Convert.ToInt32(csvColumns[8]);
+        metarObj.WindSpeedKt = string.IsNullOrEmpty(csvColumns[8]) ? -1 : Convert.ToInt32(csvColumns[8]);
         metarObj.WindGustKt = string.IsNullOrEmpty(csvColumns[9])
             ? 0
             : Convert.ToInt32(csvColumns[9]);

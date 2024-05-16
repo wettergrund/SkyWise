@@ -1,6 +1,6 @@
 <script>
-	import { Card, Heading, P, Span } from 'flowbite-svelte';
-	import { WindIcon } from 'svelte-feather-icons';
+	import { Card, Heading, Hr, P, Span } from 'flowbite-svelte';
+	import { WindIcon, CloudIcon } from 'svelte-feather-icons';
 	import RuleBadge from './RuleBadge.svelte';
 
 
@@ -24,6 +24,8 @@
 
     <div class="wind-section flex flex-col items-center">
 
+        <WindIcon class="mb-2" />
+
         <div>
             {`${metar.windDirectionDeg < 100 ? 0 : "" }${metar.windDirectionDeg}`}°
         </div>
@@ -42,7 +44,29 @@
             {/if}
         </div>
     </div>
-    <div class="cloud">s</div>
+    <div class="cloud flex flex-col justify-center items-center">
+        <CloudIcon class="mb-2"/>
+        {#each metar.cloudLayers as cloud }
+
+        {#if cloud.cover === "CAVOK"}
+        
+        <P>{cloud.cover}</P>
+
+        {:else}
+        <P>{cloud.cover}</P>
+        <div>{cloud.cloudBase}ft</div>
+        <Hr/>
+        <P>
+            { metar.visibilityM }
+        </P>
+            
+        {/if}
+       
+            
+        {/each}
+      
+        
+    </div>
     </div>
 
     <!-- <Heading tag="h5">Additional Info</Heading> -->
@@ -68,33 +92,31 @@
     <div class="grid md:grid-cols-3">
      
         <figure>
-            <Heading tag="h6">Cloud</Heading>
-            <div class="info grid grid-cols-2 gap-3">
-      
-                {#each metar.cloudLayers as cloud }
-                <P>{cloud.cover}</P>
-                <div>{cloud.cloudBase}ft</div>
-                    
-                {/each}
-            </div>
-        </figure>
-        <figure>
             <Heading tag="h6">Pressure</Heading>
             <P>{metar.qnh}</P>
 
 
         </figure>
-           
-            <figure>
-                <Heading tag="h6">Temp</Heading>
-                <div class="info grid grid-cols-2 gap-3">
-                    <div>Temp</div>
-                    <div>{metar.temp + '°C'}</div>
-                    <div>Dew</div>
-                    <div>{metar.dewPoint + '°C'}</div>
-                   
-                </div>
-            </figure>
+        
+        <figure>
+            <Heading tag="h6">Temp</Heading>
+            <div class="info grid grid-cols-2 gap-3">
+                <div>Temp</div>
+                <div>{metar.temp + '°C'}</div>
+                <div>Dew</div>
+                <div>{metar.dewPoint + '°C'}</div>
+                
+            </div>
+        </figure>
+        <figure>
+            <Heading tag="h6">Other</Heading>
+            <div class="info grid grid-cols-2 gap-3">
+      
+                {
+                    metar.wxString
+                }
+            </div>
+        </figure>
 
     </div>
 
